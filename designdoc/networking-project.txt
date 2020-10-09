@@ -1,0 +1,16 @@
+APPROACH
+==
+- Stateless firewall (will do the stateful instead if the SRS turns out easy; or leave it easy :) ).
+- Use Java to create UI
+- Build a `bridge` executable in C that interacts with iptables-save and iptables-restore
+- On load: 
+-- The bridge calls `iptables-save` and fetch all rules then pass as arguments to the GUI process
+-- Set automatic restore firewall rules by directly editting `crontab` and indirectly interact with the `cron` tool (need more info on the `cron` tool) unless already did.
+- See overview section to see overall system mechanics
+==
+REASONING
+==
+- The netfilter has only provided the userspace program, not any API has been invented to edit directly the rules, thus we are building a bridge which will generate the commands to add the rules, then apply them in the terminal. (handicaps)
+- Make use of the netfilter framework for filtering IP packages, which is *available (built-in) to Linux 1.4.x and later kernel series*. (service availability is guaranteed). 
+- Interact directly with `iptables-save` and `iptables-restore`. They are *tools* (software programs) provided along with `iptables` from the ip filtering framework `netfilter` (more specific on internal work).
+- Since Netfilter and its components maintain a *big and stable framework* for filtering IP packets that pass by the local host, we are *not reinventing them*, but build some *software* on top to *make use of them*. (abstractio, aka. reusing)
