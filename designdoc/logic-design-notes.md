@@ -27,5 +27,20 @@ iptables
 -A OUTPUT -p tcp --dport http -j DROP
 xceeded@xceeded:~/CodeBlocks/Bridge/bin/Debug$ 
 ```
-*=> GUI app will pass in a string for long commands
+*=> GUI app will pass in a string for long commands*
 
+==
+Parsing IP Tables -save
+
+-P INPUT ACCEPT
+-P FORWARD ACCEPT
+-P OUTPUT ACCEPT
+-N f2b-icmp-ping
+-A INPUT -p icmp -j f2b-icmp-ping
+-A f2b-icmp-ping -s 127.0.1.1/32 -j DROP
+-A f2b-icmp-ping -s 10.0.134.198/32 -j DROP
+
+**
+-P: Policy flag: specify table default policy
+-N: create new table
+-A: append rule to table

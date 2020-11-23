@@ -241,6 +241,7 @@ public class MainGUI extends javax.swing.JFrame {
             }
         });
 
+        jList1.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jList1.setAutoscrolls(false);
         jList1.setLayoutOrientation(javax.swing.JList.HORIZONTAL_WRAP);
         jList1.setVisibleRowCount(-1);
@@ -414,6 +415,9 @@ public class MainGUI extends javax.swing.JFrame {
         
     }//GEN-LAST:event_jToggleButton2ActionPerformed
 
+    public static void main(String[] args){
+        (new MainGUI()).setVisible(true);
+    }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton2;

@@ -1,0 +1,17 @@
+- default string:
+{"jail.conf", "jail.local"}, [DEFAULT]
+overriding method: append
+- jail
+{jail.conf,jail.local,jail.d/*.conf|local} [!INCLUDES|DEFAULT]
+overriding method: append
+- filter
+{filter.d/*.conf|local} [DEFINITION]
+overriding method: append
+- action
+{action.d/*.conf|local} [DEFINITION]
+overriding method: append
+
+==
+Configure a filter for tcp-dump to log tcp syn packet
+
+tcp-dump (...) tcp[tcpflags] & tcp-syn != 0

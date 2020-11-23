@@ -1,0 +1,6 @@
+[icmp-ping]
+enabled=true
+logpath = /var/icmp-ping.log
+action = icmp-ban[name=%(__name__)s]
+bantime=-1
+maxretry=5

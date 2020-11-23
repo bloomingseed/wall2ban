@@ -1,0 +1,15 @@
+parsing action files
+==
+algo parse action[start|stop|ban|unban]
+input file:string
+output void
+begin
+use pattern "action[start|stop|ban|unban] = (2) "
+while(has line)
+  line = readline()
+  if line matches 
+    if matches "actionstart" then 
+      append (2) to string builder 
+      use another pattern "([^=]+)"
+      ..
+    
