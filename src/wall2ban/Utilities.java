@@ -5,6 +5,12 @@
  */
 package wall2ban;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Paths;
+
 /**
  *
  * @author xceeded
@@ -25,6 +31,12 @@ public class Utilities {
                     b.append(sep);
             }
             return b.toString();
+        }
+        public static void saveToFile(String path, String content) throws IOException{
+            File file = Paths.get(path).toFile();
+            BufferedWriter bwriter = new BufferedWriter(new FileWriter(file));
+            bwriter.write(content);
+            bwriter.close();
         }
     }
 }

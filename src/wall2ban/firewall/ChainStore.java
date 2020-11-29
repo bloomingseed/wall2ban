@@ -14,14 +14,19 @@ import wall2ban.BashInterpreter;
 import wall2ban.IStore;
 
 /**
- *
+ * Data access class for iptables chains.
+ * @see Chain
+ * @see #ChainStore()
  * @author xceeded
  */
 public class ChainStore implements IStore<Chain,String>{
 
     private ArrayList<Chain> chains;    // in-memory chains collection
     private BashInterpreter bashi;      // to communicate with terminal through shell cmd
-    
+    /**
+     * 
+     * @throws Exception 
+     */
     public ChainStore() throws Exception{
         bashi = new BashInterpreter();
        initializeChainsList();
