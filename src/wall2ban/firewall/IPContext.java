@@ -11,7 +11,8 @@ import java.util.logging.Logger;
 import wall2ban.BashInterpreter;
 
 /**
- * DAO class for IPTable chains and rules.
+ * Ultimate data access class for iptables application.
+ * @see #IPContext()
  * @author xceeded
  */
 public class IPContext {
@@ -21,6 +22,8 @@ public class IPContext {
      * Create the chains and rules from the underlaying iptables.
      * @throws IOException If communication with terminal failed.
      * @throws Exception If parsing iptables failed.
+     * @see ChainStore
+     * @see IPRuleStore
      */
     public IPContext() throws IOException, Exception {
         this.chainStore = new ChainStore();

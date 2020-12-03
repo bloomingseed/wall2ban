@@ -21,17 +21,50 @@ import wall2ban.StringUpdater;
 
 /**
  * A Bean model representing a fail2ban filter.
+ * @see Filter()
+ * @see Filter(Filter)
  * @author xceeded
  */
 public class Filter extends HashMap<String,Map<String,String>>{
-    /**
-     * Name of the file containing this filter's config. Excluding the extension: .conf, .local.
-     */
+    
     private String name;
+    /**
+     * Name of the file containing this filter's config, if its value is 
+     * different from {@code null}. Excluding the extension: .conf, .local.
+     */
     private String originalName;    
     private String configString;
+    /**
+     * Default initialization. Creates new action with
+     * all members being {@code null} and with an empty "Definition" {@code section}.
+     */
     public Filter(){
         super();
+        Map<String,String> defSect = new HashMap<String,String>();  // creates empty section
+        this.put("Definition", defSect);    // puts to filter config
+    }
+    /**
+     * Copy constructor copies all members of specified filter and
+     * all of its section & contents. If passed a null filter then 
+     * members are initialized as default.
+     * @param filter Filter being cloned.
+     */
+    public Filter(Filter filter){
+        super();
+        if(filter!=null){
+            this.name = filter.name;
+            this.originalName = filter.originalName;
+            this.configString = filter.configString;
+            
+            this.clear();   // clears map
+            for(Object key : filter.keySet()){  // loops through each section
+                Map<String,String> propMap = (Map<String,String>) filter.get(key);  // gets section's property map
+                // propMap is map of immutables so shallow cloning works as deep cloning
+                Map<String,String> clone = new HashMap<String,String>(propMap); // shallow copies propMap
+
+                this.put((String)key, clone);   // saves section to this map
+            }
+        }
     }
     
     @Override 
@@ -164,21 +197,50 @@ public class Filter extends HashMap<String,Map<String,String>>{
         }
     }
     
+    public Filter clone() {
+        Filter filter = (Filter)super.clone();
+        // copying map
+        return null;
+    }
     
-    public static void main(String[] args) throws IOException{
+    
+    public static void main(String[] args) throws IOException, Exception{
         
         test1();
         System.out.println("Test completed");
     }
     
     public static void test1() throws IOException{
-//        
-//        Path filePath = Paths.get(Utils.getWorkingFoler(),"/confsamples/filter/icmp-ping.conf");
-//        
-//        String fContent = Files.readString(filePath);
-//        Filter ftr = Filter.parseFilter(fContent);
-//        ftr.setFailRegex("Nothing");
-//        ftr.updateConfigString();
+        Map<String,String> map1 = new HashMap<String,String>();
+        Map<String,String> map2 = new HashMap<String,String>();
+        
+        // initializes map1
+        for(int i = 0; i<10; ++i)
+            map1.put(""+i, "Hello "+(i+1));
+        map2.putAll(map1);
+        for(Object key : map1.keySet())
+            System.out.println(key.toString()+" : "+map1.get(key));
+        // modifies map2
+        for(int i = 0; i<10; ++i)
+            map2.replace(""+i, "Good bye "+(i-10));
+        for(Object key : map1.keySet())
+            System.out.println(key.toString()+" : "+map1.get(key));
+        // SUMMARY: Map.putAll() does shallow copy
+    }
+    public static void test2() throws Exception{
+        Map<String,String> map1 = new HashMap<String,String>();
+        
+        // initializes map1
+        for(int i = 0; i<10; ++i)
+            map1.put(""+i, "Hello "+(i+1));
+        Map<String,String> map2 = new HashMap<String,String>(map1);
+        for(Object key : map1.keySet())
+            System.out.println(key.toString()+" : "+map1.get(key));
+        // modifies map2
+        for(int i = 0; i<10; ++i)
+            map2.replace(""+i, "Good bye "+(i-10));
+        for(Object key : map1.keySet())
+            System.out.println(key.toString()+" : "+map1.get(key));
         
     }
     

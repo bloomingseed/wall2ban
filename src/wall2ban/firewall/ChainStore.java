@@ -145,17 +145,30 @@ public class ChainStore implements IStore<Chain,String>{
         
         try{
             
-            ChainStore store = new ChainStore();
-            IPRuleStore ruleStore = new IPRuleStore(store);
-            
-            store.delete(store.readByKey("stub-chain"));
-            
-            System.out.println("Deletion succeeded");
+            test2();
             
         }catch(Exception err){
             err.printStackTrace();
         }
         
     }
-    
+    public static void test1() throws Exception{
+        ChainStore store = new ChainStore();
+            IPRuleStore ruleStore = new IPRuleStore(store);
+            
+            store.delete(store.readByKey("stub-chain"));
+            
+            System.out.println("Deletion succeeded");
+    }
+    public static void test2() throws Exception{
+        ChainStore store = new ChainStore();
+            IPRuleStore ruleStore = new IPRuleStore(store);
+            
+            Chain c = store.readAll().get(0);
+            Chain foo = new Chain(c);
+            
+            IPRule rule = ruleStore.readAll().get(0);
+            IPRule bar = new IPRule(rule);
+            
+    }
 }

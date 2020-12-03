@@ -17,6 +17,8 @@ import wall2ban.Utilities.Utils;
 
 /**
  * A Bean model representing a fail2ban filter.
+ * @see #Jail()
+ * @see #Jail(Jail)
  * @author xceeded
  */
 public class Jail extends HashMap<String,String>{
@@ -33,14 +35,29 @@ public class Jail extends HashMap<String,String>{
      */
     private String configString;
     
-    
+    /**
+     * Default initialization. Creates new jail @{code Map} with 
+     * all members being null.
+     * @see java.util.HashMap
+     */
     public Jail(){
         super();
     }
-    public Jail(String name, String configString) throws Exception{
+    /**
+     * Copy constructor hard-copies all members and mapped entries 
+     * of the specified jail.
+     * @param jail Jail being copied.
+     */
+    public Jail(Jail jail){
         this();
-        setName(name);
-        setConfigString(configString);
+        if(jail!=null){
+            this.name = jail.name;
+            this.configString = jail.configString;
+            
+            this.clear();
+            // propMap is map of immutables so shallow cloning works as deep cloning
+            this.putAll(jail);  // shallow copies all jail entries
+        }
     }
     
     
@@ -173,7 +190,7 @@ public class Jail extends HashMap<String,String>{
     
     public static void main(String[] args) throws IOException, Exception{
         
-        test1();
+        test3();
         System.out.println("Test completed");
     }
     
@@ -196,6 +213,18 @@ public class Jail extends HashMap<String,String>{
     public static void test2() throws IOException{
         Path filePath = Paths.get(Utils.getWorkingFoler(),"/confsamples/filter/icmp-ping.conf");
         Filter ftr = Filter.parseFilter(filePath);
+    }
+    
+    
+    public static void test3() throws IOException, Exception{
+        Path filePath = Paths.get(Utils.getWorkingFoler(),"/confsamples/jail/icmp-ping.local");
+        Jail ftr = Jail.parseJail(filePath);
+        Jail ftr2 = new Jail(ftr);
+        System.out.println(ftr.getConfigString());
+        
+        ftr2.replace("logpath", "/etc/foo-world.log");
+        System.out.println(ftr2.toConfigString());
+        System.out.println(ftr.toConfigString());
     }
     
 }

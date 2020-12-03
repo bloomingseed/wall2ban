@@ -13,6 +13,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import wall2ban.IStore;
 import wall2ban.Utilities;
 
@@ -107,7 +109,7 @@ public class ActionStore implements IStore<Action,String>{
                     actions.add(action);    // adds action to list
                 else
                     actions.get(i).override(action);    // overrides old action with new one
-            } catch(IOException err){
+            } catch(Exception err){
                 System.out.println("Failed when parsing action at "+path.toString()+". Skipping this action..");
             }
         }  

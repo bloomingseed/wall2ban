@@ -10,6 +10,9 @@ import java.util.regex.Pattern;
 
 /**
  * A Bean representing an {@code iptables} rule in its chain.
+ * @see IPRule
+ * @see IPRule(String,String,String,String,int,int,Chain)
+ * @see IPRule(IPRule)
  * @author xceeded
  */
 public class IPRule {
@@ -26,13 +29,25 @@ public class IPRule {
     private Chain owner;
     
     /**
-     * Create a rule not belonging to a chain with no target and other specs being {@code any}, 
+     * Create a rule not belonging to a chain with {@code DROP} target,
+     * protocol of {@code tcp} and other specs implying any, 
      */
     public IPRule(){   
         target = "DROP";    // set default target
         sourceIp = destIp = "";  // set default source and dest. ips
         protocol = "tcp";   // set default protocol 
     }
+    /**
+     * Creates a full rule following the specified parameters.
+     * @param sourceIp
+     * @param destIp
+     * @param target
+     * @param protocol
+     * @param sourcePort
+     * @param destPort
+     * @param chain
+     * @throws Exception 
+     */
     public IPRule(String sourceIp, String destIp, String target, String protocol, int sourcePort, int destPort, Chain chain) throws Exception {
         setSourceIp(sourceIp);
         setDestinationIp(destIp);
@@ -41,6 +56,25 @@ public class IPRule {
         setSourcePort(sourcePort);
         setDestinationPort(destPort);
         setOwner(chain);
+    }
+    /** 
+     * Copy constructor copies all members of specified rule.
+     * If specified rule is null then default constructor is called.
+     * @see #IPRule()
+     * @param rule 
+     */
+    public IPRule(IPRule rule){
+        this(); // calls default constructor to initializes members
+        if(rule!=null){ // checks if specified rule is a valid rule
+            // shallow copies all (immutable) members.
+            this.destIp = rule.destIp;
+            this.sourceIp = rule.sourceIp;
+            this.destPort = rule.destPort;
+            this.sourcePort = rule.sourcePort;
+            this.target = rule.target;
+            this.protocol = rule.protocol;
+            this.owner = rule.owner;    // sets to same owner (not hard-copying owner)
+        }
     }
     
     @Override
@@ -60,23 +94,13 @@ public class IPRule {
                 rule.getOwner() == this.owner);
     }
     /**
-     * Check if {@code ip} represents an IPv4 address.
+     * Check if {@code ip} represents an IPv4 address with optionally 
+     * subnet mask.
      * @param ip
      * @return
      * @throws Exception 
      */
     private static boolean isIpv4Address(String ip) {
-//        String[] byteStrings = ip.split("\\.");
-//        if(byteStrings.length!=4)
-//            return false;
-//        try{
-//            for(int i = 0; i<4; ++i)
-//                if(Integer.parseInt(byteStrings[i])-255>0)  // if any octet has value greater than 255
-//                    return false;
-//        } catch(NumberFormatException err){
-//            return false;
-//        }
-//        return true;
         return Pattern.matches("(^(\\d{1,3})(\\.\\d{1,3}){3}(/\\d{1,3})?$)",ip);
     }
     
