@@ -31,9 +31,22 @@ import wall2ban.Utilities.Utils;
  * @author xceeded
  */
 public class JailStore implements IStore<Jail,Object>{
-
+    /**
+     * Full list of jails configured in the system.
+     */
     private List<Jail> jails;
+    /**
+     * Sublist of jails being active.
+     */
+    private Map<Jail,List<String>> activeJails;
+    /**
+     * Default config defined for all jails.
+     */
     private DefaultJailConfig jailConfig;
+    /**
+     * Interpreter for bash terminal to execute commands.
+     */
+    private BashInterpreter bi;
     /**
      * String representation of file path to root folder for fail2ban-client.
      */
@@ -57,7 +70,10 @@ public class JailStore implements IStore<Jail,Object>{
      * @see #cleanUp()
      */
     public JailStore() throws IOException, Exception {
-        getAllJails();
+        bi = new BashInterpreter();
+        getAllJails();  
+        getAllActiveJails();
+        updateBannedIps();
         cleanUp();
     }
     
@@ -71,13 +87,13 @@ public class JailStore implements IStore<Jail,Object>{
         jails = new ArrayList<Jail>();  // creates new empty jails list
         
         List<File> files = new LinkedList<File>();  // creates empty list of files to parse
-        files.add(Paths.get(FAIL2BAN_ROOT+"/jail.conf").toFile());   // adds default jails config file
-        File localConfig = null;
-        try{
-            localConfig = Paths.get(FAIL2BAN_ROOT+"/jail.local").toFile();
-        } catch(Exception err){}
-        if(localConfig!=null)   // checks if local config file exists
-            files.add(localConfig); // adds local config file to files list
+        File jcFile = null; // declares the file reference
+        jcFile = Paths.get(FAIL2BAN_ROOT+"/jail.conf").toFile();    // gets jail.conf file
+        if(jcFile.exists()) // checks if jail.conf file exists
+            files.add(jcFile);   // adds to files to read
+        jcFile = Paths.get(FAIL2BAN_ROOT+"/jail.local").toFile();   // gets jail.local file
+        if(jcFile.exists())   // checks if local config file exists
+            files.add(jcFile); // adds local config file to files list
                 
         File folder = Paths.get(JAILS_FOLDER).toFile();   // gets folder containing custom jails
         FilenameFilter flt = new FilenameFilter(){
@@ -189,6 +205,30 @@ public class JailStore implements IStore<Jail,Object>{
         }
     }
     
+    private void getAllActiveJails() throws Exception{
+        activeJails = new HashMap<Jail,List<String>>(); // creates empty list
+        String command = "fail2ban-client status";  // defines the shell command
+        if(bi.executeRoot(command)!=0)  // executes command then checks if it failed
+            throw new Exception("Failed to get fail2ban status");
+        
+        String[] resLines = bi.getResponse().split("\n"); // gets and splits command response by lines
+        String resLine = resLines[resLines.length-1];   // gets last response line 
+        String pattern = "((^[^\\n]*Jail list:\\s*([\\w-\\s,]+)\\s*$))";   // defines regex pattern to get active jails
+        Matcher m = Pattern.compile(pattern).matcher(resLine);
+        if(!m.matches())    // matches the response against pattern then checks if it matches
+            throw new Exception("Failed to match regex pattern.");
+        
+        String jailsList = m.group(2).split("[^\\n]*Jail list:\\s*")[1];  // gets the string part of jails name
+        String[] jailNames = jailsList.split(",\\s*");  // splits jail names in jails list
+        for(String jailName : jailNames){
+            Jail jail = readByKey(jailName); // gets the jail by its name
+            if(jail==null)  // checks if it doesn't listed
+                throw new Exception("Failed to get jail "+jailName);
+            activeJails.put(jail,null);  //adds it to list of active jails
+        }
+                
+    }
+    
     private void saveJail(Jail jail) throws IOException{
         File configFile = Paths.get(JAILS_FOLDER+String.format("/%s.local",jail.getName())).toFile();   // gets file to current jail name
         if(configFile.exists()) // checks if such file exists
@@ -221,12 +261,38 @@ public class JailStore implements IStore<Jail,Object>{
             throw new Exception("Failed to set mode permission");
         
     }
+    /**
+     * Updates list of banned IPs of {@link activeJails}.
+     */
+    public void updateBannedIps() throws Exception{
+        for(Map.Entry<Jail,List<String>> entry : activeJails.entrySet()){
+            String command = "fail2ban-client status "+entry.getKey().getName();  // defines the shell command
+            if(bi.executeRoot(command)!=0)  // executes the command then checks if it failed
+                throw new Exception("Failed to get status of "+entry.getKey().getName()); 
+            String[] resLines = bi.getResponse().split("\n");   // splits response by lines
+            // gets last line then takes part containing list of banned ips
+            String[] ipLine = resLines[resLines.length-1].split("[^\\n]*Banned IP list:\\s*");
+            
+            List<String> ipList = new ArrayList<String>();
+            try{
+                String ipsString = ipLine[1];   // gets second part of ipLine containing ips
+                String[] ips = ipsString.split("\\s+");    // splits ip list to array
+                for(String ip : ips)    // loops through each ip
+                    ipList.add(ip); // adds to list
+            } catch(java.lang.ArrayIndexOutOfBoundsException err){  // in case failed to get ips string
+                System.out.println(entry.getKey().getName()+" has no banned IPs");
+            }
+            entry.setValue(ipList);    // sets the banned IPs to for this jail
+        }
+    }
     
     
     @Override
     public List<Jail> readAll() {
         return jails;
     }
+    
+    public Map<Jail,List<String>> readActiveJails(){ return activeJails;}
 
     @Override
     public Jail readByKey(Object key) {
@@ -236,6 +302,13 @@ public class JailStore implements IStore<Jail,Object>{
         return null;    // returns nothing
     }
 
+    public Map.Entry<Jail,List<String>> readActiveByKey(Object key){
+        for(Map.Entry<Jail,List<String>> entry : activeJails.entrySet())  // loops through each jail in list
+            if(entry.getKey().getName().equals(key))  // checks if this jail has same name as key
+                return entry;    // returns this jail
+        return null;    // returns nothing
+    }
+    
     @Override
     public void create(Jail entity) throws Exception {
         if(entity==null || jails.contains(entity)) // checks if such jail is null or has existed
@@ -263,10 +336,49 @@ public class JailStore implements IStore<Jail,Object>{
         saveFile.delete();  // deletes save file
     }
     
+    /**
+     * Manually bans an ip for a specific jail.
+     * @param jail Jail to ban.
+     * @param ip IP to be banned.
+     * @throws java.lang.Exception If ban action failed.
+     */
+    public void banJail(Jail jail, String ip) throws Exception{
+        
+        String command = String.format("fail2ban-client set %s banip %s",jail.getName(),ip);
+        if(bi.executeRoot(command)!=0)
+            throw new Exception(String.format("Failed to ban IP %s for jail %s",ip,jail.getName()));
+        
+    }
+    
+    /**
+     * Manually unbans an ip for a specific jail.
+     * @param jail Jail to unban.
+     * @param ip IP to be unbanned.
+     * @throws java.lang.Exception If unban action failed.
+     */
+    public void unbanJail(Jail jail, String ip) throws Exception{
+        
+        String command = String.format("fail2ban-client set %s unbanip %s",jail.getName(),ip);
+        if(bi.executeRoot(command)!=0)
+            throw new Exception(String.format("Failed to unban IP %s for jail %s",ip,jail.getName()));
+        
+    }
+    
+    /**
+     * Unbans all IPs in all active jails.
+     * @throws java.lang.Exception If unban all failed.
+     */
+    public void unbanAll() throws Exception{
+        String command = String.format("fail2ban-client unban --all");
+        if(bi.executeRoot(command)!=0)
+            throw new Exception("Failed to unban all");
+        
+    }
+    
     
     public static void main(String[] args) throws IOException, Exception{
         
-        test1();
+        test3();
         System.out.println("Test completed");
     }
     
@@ -287,6 +399,66 @@ public class JailStore implements IStore<Jail,Object>{
         jailStore.update(myJail);
         jailStore.delete(myJail);
     }
-    
+    public static void test2() throws IOException, Exception{
+        
+        JailStore jailStore = new JailStore();
+        for(Map.Entry<Jail,List<String>> entry : jailStore.readActiveJails().entrySet()){
+            Jail jail = entry.getKey();
+            List<String> bannedIps = entry.getValue();
+            System.out.println(jail.getName());
+            for(String ip : bannedIps)
+                System.out.print(ip+" ");
+            System.out.println();
+        }
+    }
+    public static void test3() throws Exception{
+        JailStore jailStore = new JailStore();
+        String banip = "10.0.11.11";
+        // display active jails and banned ips
+        for(Map.Entry<Jail,List<String>> entry : jailStore.readActiveJails().entrySet()){
+            Jail jail = entry.getKey();
+            List<String> bannedIps = entry.getValue();
+            System.out.println(jail.getName());
+            for(String ip : bannedIps)
+                System.out.print(ip+" ");
+            System.out.println();
+        }
+        
+        Jail banjail = jailStore.readActiveByKey("icmp-ping").getKey();
+        jailStore.banJail(banjail, banip);
+        // display active jails and banned ips
+        for(Map.Entry<Jail,List<String>> entry : jailStore.readActiveJails().entrySet()){
+            Jail jail = entry.getKey();
+            List<String> bannedIps = entry.getValue();
+            System.out.println(jail.getName());
+            for(String ip : bannedIps)
+                System.out.print(ip+" ");
+            System.out.println();
+        }
+        
+        jailStore.unbanJail(banjail, "10.0.11.11");
+        jailStore.banJail(banjail, banip);
+        // display active jails and banned ips
+        for(Map.Entry<Jail,List<String>> entry : jailStore.readActiveJails().entrySet()){
+            Jail jail = entry.getKey();
+            List<String> bannedIps = entry.getValue();
+            System.out.println(jail.getName());
+            for(String ip : bannedIps)
+                System.out.print(ip+" ");
+            System.out.println();
+        }
+        
+        jailStore.unbanAll();
+        jailStore.banJail(banjail, banip);
+        // display active jails and banned ips
+        for(Map.Entry<Jail,List<String>> entry : jailStore.readActiveJails().entrySet()){
+            Jail jail = entry.getKey();
+            List<String> bannedIps = entry.getValue();
+            System.out.println(jail.getName());
+            for(String ip : bannedIps)
+                System.out.print(ip+" ");
+            System.out.println();
+        }
+    }
 }
 

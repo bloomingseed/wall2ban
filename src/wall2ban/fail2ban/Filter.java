@@ -197,12 +197,6 @@ public class Filter extends HashMap<String,Map<String,String>>{
         }
     }
     
-    public Filter clone() {
-        Filter filter = (Filter)super.clone();
-        // copying map
-        return null;
-    }
-    
     
     public static void main(String[] args) throws IOException, Exception{
         
