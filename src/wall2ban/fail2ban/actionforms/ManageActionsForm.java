@@ -5,21 +5,49 @@
  */
 package wall2ban.fail2ban.actionforms;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import javax.swing.DefaultListModel;
+import javax.swing.JOptionPane;
 import wall2ban.DeleteForm;
+import wall2ban.fail2ban.Action;
+import wall2ban.fail2ban.ActionStore;
 
 /**
  *
  * @author ADMIN
  */
 public class ManageActionsForm extends javax.swing.JFrame {
-
+    /**
+     * DAO for actions management.
+     */
+    private ActionStore actionStore;
+    
     /**
      * Creates new form ManageActionsForm
      */
-    public ManageActionsForm() {
+    public ManageActionsForm(ActionStore actionStore) {
         initComponents();
-        this.jLabel1.setText("Actions");
-        this.jLabel2.setText("Definition");
+        this.actionStore = actionStore;
+        
+        bindActionsList();
+    }
+    /**
+     * Creates new action names list and sets it to list model.
+     */
+    private void bindActionsList(){
+        List<String> actionNames = new ArrayList<String>();
+        for(Action action : actionStore.readAll())
+            actionNames.add(action.getName());
+        Comparator c = new Comparator<String>(){
+            @Override
+            public int compare(String a, String b){return a.compareTo(b);}
+        };
+        actionNames.sort(c);
+        DefaultListModel<String> model = new DefaultListModel<String>();
+        model.addAll(actionNames);
+        this.actionsJList.setModel(model);
     }
 
     /**
@@ -34,61 +62,56 @@ public class ManageActionsForm extends javax.swing.JFrame {
         jPanel1 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList<>();
+        actionsJList = new javax.swing.JList<>();
         jLabel1 = new javax.swing.JLabel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        jList2 = new javax.swing.JList<>();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
+        editButton = new javax.swing.JButton();
+        createButton = new javax.swing.JButton();
+        deleteButton = new javax.swing.JButton();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        definitionTextArea = new javax.swing.JTextArea();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel2.setText("jLabel2");
+        jLabel2.setText("Definition");
         jLabel2.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 
-        jList1.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
+        actionsJList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        actionsJList.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                actionsJListMouseClicked(evt);
+            }
         });
-        jScrollPane1.setViewportView(jList1);
+        jScrollPane1.setViewportView(actionsJList);
 
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("jLabel1");
+        jLabel1.setText("Actions");
         jLabel1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 
-        jList2.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
-        });
-        jList2.setAutoscrolls(false);
-        jList2.setLayoutOrientation(javax.swing.JList.HORIZONTAL_WRAP);
-        jList2.setVisibleRowCount(-1);
-        jScrollPane2.setViewportView(jList2);
-
-        jButton1.setText("Edit");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        editButton.setText("Edit");
+        editButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                editButtonActionPerformed(evt);
             }
         });
 
-        jButton2.setText("Create Action");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        createButton.setText("Create Action");
+        createButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                createButtonActionPerformed(evt);
             }
         });
 
-        jButton3.setText("Delete Action");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        deleteButton.setText("Delete Action");
+        deleteButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                deleteButtonActionPerformed(evt);
             }
         });
+
+        definitionTextArea.setColumns(20);
+        definitionTextArea.setRows(5);
+        jScrollPane3.setViewportView(definitionTextArea);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -96,24 +119,24 @@ public class ManageActionsForm extends javax.swing.JFrame {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 113, Short.MAX_VALUE)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jScrollPane1))
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(18, 18, 18)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(jButton2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 9, Short.MAX_VALUE)
-                                .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jScrollPane2))
-                        .addContainerGap())
-                    .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(83, 83, 83)
                         .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 189, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(18, 18, 18)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane3)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(editButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(createButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(deleteButton)))
+                        .addContainerGap())))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -126,12 +149,12 @@ public class ManageActionsForm extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jScrollPane3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton1)
-                            .addComponent(jButton2)
-                            .addComponent(jButton3))
+                            .addComponent(editButton)
+                            .addComponent(createButton)
+                            .addComponent(deleteButton))
                         .addContainerGap())))
         );
 
@@ -149,19 +172,70 @@ public class ManageActionsForm extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-       
-    }//GEN-LAST:event_jButton1ActionPerformed
+    private void editButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editButtonActionPerformed
+        if(this.actionsJList.getSelectedIndex()>=0){    // checks if user clicked a valid item
+            String actionName = this.actionsJList.getSelectedValue();   // gets selected action name
+            Action action = actionStore.readByKey(actionName);  // gets action from list
+            ConfigureActionDialog form = new ConfigureActionDialog(this,true,action); // creates new config form to edit action
+            form.setVisible(true);
+            if(form.getFormResult()){   // checks if operation succeeded
+                Action newAction = form.getAction(); // gets updated action
+                try {
+                    actionStore.update(newAction);  // updates action
+                    bindActionsList();      // updates actions list in view
+                } catch (Exception err) {
+                    JOptionPane.showMessageDialog(this, "Failed to update action.\nError: "+err.getMessage());
+                }
+                
+            }
+        }
+    }//GEN-LAST:event_editButtonActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-       
-    }//GEN-LAST:event_jButton2ActionPerformed
+    private void createButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createButtonActionPerformed
+        if(this.actionsJList.getSelectedIndex()>=0){    // checks if user clicked a valid item
+            ConfigureActionDialog form = new ConfigureActionDialog(this,true,null); // creates new config form to edit action
+            form.setVisible(true);
+            if(form.getFormResult()){   // checks if operation succeeded
+                Action newAction = form.getAction(); // gets new action
+                try {
+                    actionStore.create(newAction);  // creates action
+                    bindActionsList();      // updates actions list in view
+                } catch (Exception err) {
+                    JOptionPane.showMessageDialog(this, "Failed to create action.\nError: "+err.getMessage());
+                }
+                
+            }
+        }
+    }//GEN-LAST:event_createButtonActionPerformed
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        DeleteForm deleteaf = new DeleteForm(this,true);
-        deleteaf.setVisible(true);
+    private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
+        if(this.actionsJList.getSelectedIndex()>=0){    // checks if user clicked a valid item
+            String actionName = this.actionsJList.getSelectedValue();   // gets selected action name
+            Action action = actionStore.readByKey(actionName);  // gets action from list
+            
+            DeleteForm delForm = new DeleteForm(this,true);
+            delForm.setMessage("Delete action "+action.getName());
+            delForm.setVisible(true);
+            if(delForm.getFormResult()){    // checks if operation succeeded
+                try {
+                    actionStore.delete(action); // deletes action
+                    bindActionsList();      // updates actions list in view
+                } catch (Exception err) {
+                   JOptionPane.showMessageDialog(this, "Failed to delete action.\nError: "+err.getMessage());
+                }
+            }
+        }
+    }//GEN-LAST:event_deleteButtonActionPerformed
 
-    }//GEN-LAST:event_jButton3ActionPerformed
+    private void actionsJListMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_actionsJListMouseClicked
+        int index = this.actionsJList.getSelectedIndex();
+        if(index>=0){   // checks if user selected a valid item
+            String actionName = this.actionsJList.getSelectedValue();
+            Action action = actionStore.readByKey(actionName);    // gets action in list
+            this.definitionTextArea.setText(action.toConfigString()); // sets config string for text area
+            
+        }
+    }//GEN-LAST:event_actionsJListMouseClicked
 
     /**
      * @param args the command line arguments
@@ -193,21 +267,22 @@ public class ManageActionsForm extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new ManageActionsForm().setVisible(true);
+                ActionStore astore = new ActionStore();
+                new ManageActionsForm(astore).setVisible(true);
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
+    private javax.swing.JList<String> actionsJList;
+    private javax.swing.JButton createButton;
+    private javax.swing.JTextArea definitionTextArea;
+    private javax.swing.JButton deleteButton;
+    private javax.swing.JButton editButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JList<String> jList1;
-    private javax.swing.JList<String> jList2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     // End of variables declaration//GEN-END:variables
 }

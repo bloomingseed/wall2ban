@@ -28,9 +28,7 @@ public class DefaultJailConfig extends HashMap<String,Map<String,String>>{
     }
     
     public String getConfigString(){return configString;}
-    public void setConfigString(String configString) throws Exception{
-        if(configString== null || configString.isBlank())
-            throw new Exception();
+    public void setConfigString(String configString) {
         this.configString = configString;
     }
     public String toConfigString(){
@@ -47,14 +45,14 @@ public class DefaultJailConfig extends HashMap<String,Map<String,String>>{
         return sbuilder.toString(); // returns builder's content
     }
     
-    public static DefaultJailConfig parseDefaultJailConfig(String configString) throws Exception{
+    public static DefaultJailConfig parseDefaultJailConfig(String configString){
         DefaultJailConfig jailConfig = new DefaultJailConfig();
         jailConfig.setConfigString(configString);
         
         String[] lines = configString.split("\n");  // splits by line
         int N = lines.length;   // gets number of lines
-        String sectionFormat = "(^\\s*\\[([\\w-]+)\\]\\s*$)";   // regex for line of section
-        String propertyFormat = "(^\\s*([\\w-_]+)\\s*=([^\\n]*)$)"; // regex for line of property
+        String sectionFormat = "(^\\s*\\[([^\\n]+)\\]\\s*$)";   // regex for line of section
+        String propertyFormat = "(^([\\w-_]+)\\s*=([^\\n]*)$)"; // regex for line of property
         
         Pattern sectionPattern = Pattern.compile(sectionFormat);    // creates a pattern for sections
         Pattern propertyPattern = Pattern.compile(propertyFormat);    // creates a pattern for section properties
@@ -74,13 +72,14 @@ public class DefaultJailConfig extends HashMap<String,Map<String,String>>{
                         
                         String key = m.group(2);    // gets the property key name
                         StringBuilder value = new StringBuilder();// creates builder for the value
-                        value.append(m.group(3)).append("\n");    // appends key's value of this line
+                        value.append(m.group(3));    // appends key's value of this line
 
                         // checks if this property's value expands to multi-line
                         i=i+1;  // advances next line
                         while(i<N && !Pattern.matches(propertyFormat,lines[i]) &&  // checks if the line isn't another property line
                                 !Pattern.matches(sectionFormat, lines[i])){ // checks if the line isn't another section line
-                            value.append(lines[i]).append("\n");  // appends this line to this property value
+                            if(!lines[i].isBlank())
+                                value.append("\n").append(lines[i]);  // appends this line to this property value
                             i=i+1;  //advances next line
                         }
 //                        i=i-1;  // steps back 1 line: next line: new property|new section

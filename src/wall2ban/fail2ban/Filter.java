@@ -41,6 +41,8 @@ public class Filter extends HashMap<String,Map<String,String>>{
     public Filter(){
         super();
         Map<String,String> defSect = new HashMap<String,String>();  // creates empty section
+        defSect.put("failregex", "");
+        defSect.put("ignoreregex", "");
         this.put("Definition", defSect);    // puts to filter config
     }
     /**
@@ -71,7 +73,10 @@ public class Filter extends HashMap<String,Map<String,String>>{
     public boolean equals(Object obj){
         try{
             Filter fr = (Filter)obj;
-            return fr.getName().equals(this.name);
+            String name = fr.getName();
+            String oname = fr.getOriginalName();
+            return (oname!=null && oname.equals(this.originalName))||
+                    (name!=null && name.equals(this.name));
         } catch(ClassCastException err){
             return false;
         }
@@ -93,10 +98,10 @@ public class Filter extends HashMap<String,Map<String,String>>{
         StringBuilder sbuilder=  new StringBuilder();   // creates builder 
         for(Object sectionKey : this.keySet()){
             Map<String,String> propMap = (Map<String,String>)this.get(sectionKey);
-            sbuilder.append(String.format("[%s]\n",(String)sectionKey));
+            sbuilder.append(String.format("\n[%s]",(String)sectionKey));
             for(Object property : propMap.keySet()){   // loops through each property in this jail
                 // adds property and value pair to builder
-                sbuilder.append(String.format("\t%s = %s\n",(String)property,(String)propMap.get(property)));
+                sbuilder.append(String.format("\n%s = %s",(String)property,(String)propMap.get(property)));
 
             }
         }
@@ -111,8 +116,8 @@ public class Filter extends HashMap<String,Map<String,String>>{
     public static Filter parseFilter(String configString){
         String[] lines = configString.split("\n");    // splits config string by lines
         int N = lines.length;  // gets number of lines
-        String sectionFormat = "(^\\s*\\[([\\w-]+)\\]\\s*$)";
-        String propertyFormat = "(^\\s*([\\w-_]+)\\s*=([^\\n]*)$)";
+        String sectionFormat = "(^\\s*\\[([^\\n]+)\\]\\s*$)";
+        String propertyFormat = "(^([\\w-_]+)\\s*=([^\\n]*)$)";
         
         Pattern sectionPattern = Pattern.compile(sectionFormat);    // creates a pattern for sections
         Pattern propertyPattern = Pattern.compile(propertyFormat);    // creates a pattern for section properties
@@ -135,13 +140,14 @@ public class Filter extends HashMap<String,Map<String,String>>{
 
                     String key = m.group(2);    // gets the property key name
                     StringBuilder value = new StringBuilder();// creates builder for the value
-                    value.append(m.group(3)).append("\n");    // appends key's value of this line
+                    value.append(m.group(3));    // appends key's value of this line
 
                     // checks if this property's value expands to multi-line
                     i=i+1;  // advances next line
                     while(i<N && !Pattern.matches(propertyFormat,lines[i]) &&  // checks if the line isn't another property line
                             !Pattern.matches(sectionFormat, lines[i])){ // checks if the line isn't another section line
-                        value.append(lines[i]).append("\n");  // appends this line to this property value
+                        if(!lines[i].isBlank()) // checks if line content isn't blank
+                            value.append("\n").append(lines[i]);  // appends this line to this property value
                         i=i+1;  //advances next line
                     }
 //                        i=i-1;  // steps back 1 line: next line: new property|new section
@@ -195,6 +201,10 @@ public class Filter extends HashMap<String,Map<String,String>>{
                         selfSection.replace((String)property,section.get(property));    // replaces the property's value in self section
             }
         }
+    }
+    @Override
+    public String toString(){
+        return this.name;
     }
     
     

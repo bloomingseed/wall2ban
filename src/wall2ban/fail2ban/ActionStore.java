@@ -131,7 +131,7 @@ public class ActionStore implements IStore<Action,String>{
     
     public static void main(String[] args) throws IOException, Exception{
         
-        test1();
+        test2();
         System.out.println("Test completed");
     }
     
@@ -154,4 +154,10 @@ public class ActionStore implements IStore<Action,String>{
         actionStore.delete(myAction);
     }
     
+    public static void test2() throws IOException, Exception{
+        
+        Path p = Paths.get("/etc/fail2ban/action.d/dshield.conf");
+        Action act= Action.parseAction(p);
+        act.toConfigString();
+    }
 }

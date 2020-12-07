@@ -28,7 +28,7 @@ public class Jail extends HashMap<String,String>{
      */
     private String originalName;
     private String name;
-
+    
     
     /**
      * The original configuration string of this jail for fail2ban-client.
@@ -66,7 +66,9 @@ public class Jail extends HashMap<String,String>{
         try{
             Jail jail = (Jail)obj;
             String name = jail.getName();
-            return name!=null && name.equals(this.name);
+            String oname = jail.getOriginalName();
+            return (oname!=null && oname.equals(this.originalName))||
+                    (name!=null && name.equals(this.name));
         } catch(ClassCastException err){
             return false;
         }
@@ -75,8 +77,7 @@ public class Jail extends HashMap<String,String>{
     
     public String getOriginalName(){return originalName;}    
     public String getName(){return this.name;}
-    public String getConfigString(){return configString;}
-    
+    public String getConfigString(){return configString;} 
     /**
      * Set the original name of this jail.The original name is
      * set equals to the name of this jail.
@@ -85,56 +86,56 @@ public class Jail extends HashMap<String,String>{
         originalName = name;
     }
     
-    public void setName(String value) throws Exception {
-        if(value==null || value.isBlank())
-            throw new Exception();
+    public void setName(String value){
         this.name = value;
     }
     
-    public void setConfigString(String value) throws Exception{
-        if(value==null || value.isBlank())
-            throw new Exception();
+    public void setConfigString(String value){
         this.configString = value;
-    }
+    } 
     /**
      * Factory method to create a filter using a valid config string.
      * @param configString A valid config string usually found in a filter config file.
      * @return The fully initialized filter.
      */
-    public static Jail parseJail(String configString) throws Exception{
-        Jail jail = new Jail();
+    public static Jail parseJail(String configString){
+        Jail jail = new Jail(null);
         jail.setConfigString(configString);
         String[] lines = configString.split("\n");  // splits by line
         int N = lines.length;   // gets number of lines
-        String sectionFormat = "(^\\s*\\[([\\w-]+)\\]\\s*$)";
-        String propertyFormat = "(^\\s*([\\w-_]+)\\s*=([^\\n]*)$)";
+        String sectionFormat = "(^\\s*\\[([^\\n]+)\\]\\s*$)";
+        String propertyFormat = "(^([\\w-_]+)\\s*=([^\\n]*)$)";
         
         Pattern sectionPattern = Pattern.compile(sectionFormat);    // creates a pattern for sections
         Pattern propertyPattern = Pattern.compile(propertyFormat);    // creates a pattern for section properties
+        Matcher m = null;
+        int i = 0;
+        do{ // loops to find jail section
+            m = sectionPattern.matcher(lines[i]);   // matches the section pattern against this line
+            if(m.matches()){    // checks if this line matches the jail section
+                String sectionName = m.group(2);
+                jail.setName(sectionName); // sets jail name as section name
+                break;
+            }
+            ++i;    //advances line
+        } while(i<N);
         
-        Matcher m = sectionPattern.matcher(lines[0]);   // matches the section pattern against this line
-        if(!m.matches())
-            throw new Exception("Invalid config string. First line must contain jail name");
-        String jailName = m.group(2);
-        jail.setName(jailName);
-        
-        for(int i = 1; i<N;){
+        while(i<N){
             m = propertyPattern.matcher(lines[i]);  // matches the property pattern against this line
             if(m.matches()){
                 String key = m.group(2);    // gets the property key name
                 StringBuilder value = new StringBuilder();// creates builder for the value
-                value.append(m.group(3)).append("\n");    // appends key's value of this line
+                value.append(m.group(3));    // appends key's value of this line
 
                 // checks if this property's value expands to multi-line
                 i=i+1;  // advances next line
                 while(i<N && !Pattern.matches(propertyFormat,lines[i]) &&  // checks if the line isn't another property line
                         !Pattern.matches(sectionFormat, lines[i])){ // checks if the line isn't another section line
-                    value.append(lines[i]).append("\n");  // appends this line to this property value
+                    if(!lines[i].isBlank()) // checks if content of this line isn't blank
+                        value.append("\n").append(lines[i]);  // appends this line to this property value
                     i=i+1;  //advances next line
                 }
-//                        i=i-1;  // steps back 1 line: next line: new property|new section
-
-            jail.put(key,value.toString());  // add this key:value to the property map of this section
+                jail.put(key,value.toString());  // add this key:value to the property map of this section
             }
             else 
                 ++i;
@@ -162,10 +163,10 @@ public class Jail extends HashMap<String,String>{
     
     public String toConfigString(){
         StringBuilder sbuilder=  new StringBuilder();   // creates builder 
-        sbuilder.append(String.format("[%s]\n",this.name)); // adds jail name to builder
+        sbuilder.append(String.format("\n[%s]",this.name)); // adds jail name to builder
         for(Object property : this.keySet()){   // loops through each property in this jail
             // adds property and value pair to builder
-            sbuilder.append(String.format("\t%s = %s\n",(String)property,(String)this.get(property)));
+            sbuilder.append(String.format("\n%s = %s",(String)property,(String)this.get(property)));
 
         }
         return sbuilder.toString(); // returns builder's content
@@ -180,13 +181,19 @@ public class Jail extends HashMap<String,String>{
      * @param jail Newer jail to override this jail.
      */
     public void override(Jail jail) throws Exception{
-        setName(jail.getName());
+        setName(jail.getName()); 
         for(Object property : jail.keySet())
-            if(this.keySet().contains(property))
+            if(this.keySet().contains(property) &&  // checks if existed key has new valid value
+                jail.get(property)!=null)
                 this.replace((String)property, (String)jail.get(property)); // sets new value for the property
-            else
+            else    // checks if the property is new and its value is not null
                 this.put((String)property, (String)jail.get(property)); // sets new property value
+            
     }
+    
+    @Override
+    public String toString(){return this.name;}
+    
     
     public static void main(String[] args) throws IOException, Exception{
         

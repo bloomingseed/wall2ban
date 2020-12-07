@@ -7,8 +7,7 @@ package wall2ban.fail2ban.actionforms;
 
 import java.awt.Frame;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
 import wall2ban.fail2ban.Action;
 
@@ -16,50 +15,59 @@ import wall2ban.fail2ban.Action;
  *
  * @author ADMIN
  */
-public class ConfigureActionsForm extends javax.swing.JDialog {
+public class ConfigureActionDialog extends javax.swing.JDialog {
 private boolean formResult;
+private Frame parent;
 private Action action;
     /**
-     * Creates new form EditActionsForm
+     * Creates new form ConfigureActionsForm
      */
-    public ConfigureActionsForm(Frame parent, boolean isModal, Action action) {
+    public ConfigureActionDialog(Frame parent, boolean isModal, Action action) {
         super(parent,isModal);
         initComponents();
-        // initializes action member
-        // this.action = new Action(action);    // TODO: copy constructor
-//        this.action=new Action();
-//        this.action.setName(action==null?"":action.getName());
-//        this.action.put("Definition", new HashMap<String,String>());    // creates default section
-//       
+        this.parent = parent;
+        
+        if(action==null){
+            this.primaryButton.setText("Create");
+            this.action = new Action();
+        }
+        else{
+            this.primaryButton.setText("Update");
+            this.action = new Action(action);    // hard copies action
+        }
+        
+        updateProps();
     }
     public boolean getFormResult(){return this.formResult;}
-    
-    private void updateConfigureResult(){
-    String content = this.action.toConfigString();    // gets config string of action in this form
-    this.configureResultTextArea.setText(content);  // sets config string to config result text area
-}
-    
+    public Action getAction(){return this.action;}
+        
+    /**
+     * Pulls out the config string and parses it to new action, then update properties.
+     */
     private void updateAction(){
             String configString = configureResultTextArea.getText();   // gets config string from text area
-            if(!configString.isBlank()){ try {
-                // checks if not blank
-                action = Action.parseAction(configString);  // spawns new action according to config string
-                updateProps();
+            if(!configString.isBlank()){ // checks if not blank
+                try {
+
+                    action = Action.parseAction(configString);  // spawns new action according to config string
+                    configureResultTextArea.setText(action.toConfigString()); // sets new config string for config text area
+                    updateProps();  // update form properties
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(this, "Failed to parse action config string.");
                 }
             }
         }
-        // updates action text areas
-        private void updateProps(){
-            Map<String,String> defaultSection = action.get("Definition");  // gets default section of this action
-            startTextArea.setText(defaultSection.get("actionstart"));
-            stopTextArea.setText(defaultSection.get("actionstop"));
-            checkTextArea.setText(defaultSection.get("actioncheck"));
-            banTextArea.setText(defaultSection.get("actionban"));
-            unbanTextArea.setText(defaultSection.get("actionunban"));
-            
-        }
+    // Pulls out the encapsulated action data to form fields.
+    private void updateProps(){
+        Map<String,String> defaultSection = action.get("Definition");  // gets default section of this action
+        nameTextField.setText(this.action.getName());
+        startTextArea.setText(defaultSection.get("actionstart"));
+        stopTextArea.setText(defaultSection.get("actionstop"));
+        checkTextArea.setText(defaultSection.get("actioncheck"));
+        banTextArea.setText(defaultSection.get("actionban"));
+        unbanTextArea.setText(defaultSection.get("actionunban"));
+        this.configureResultTextArea.setText(this.action.toConfigString());
+    }
     
     /**
      * This method is called from within the constructor to initialize the form.
@@ -71,8 +79,8 @@ private Action action;
     private void initComponents() {
 
         jPanel2 = new javax.swing.JPanel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        primaryButton = new javax.swing.JButton();
+        cancelButton = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
@@ -95,17 +103,19 @@ private Action action;
         jLabel7 = new javax.swing.JLabel();
         nameTextField = new javax.swing.JTextField();
 
-        jButton1.setText("Save");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        primaryButton.setText("Save");
+        primaryButton.setVerticalAlignment(javax.swing.SwingConstants.BOTTOM);
+        primaryButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                primaryButtonActionPerformed(evt);
             }
         });
 
-        jButton2.setText("Cancel");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        cancelButton.setText("Cancel");
+        cancelButton.setVerticalAlignment(javax.swing.SwingConstants.BOTTOM);
+        cancelButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                cancelButtonActionPerformed(evt);
             }
         });
 
@@ -114,19 +124,19 @@ private Action action;
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(65, 65, 65)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(48, Short.MAX_VALUE))
+                .addContainerGap(113, Short.MAX_VALUE)
+                .addComponent(primaryButton, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(cancelButton, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(primaryButton, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(cancelButton, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -212,7 +222,7 @@ private Action action;
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 339, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
@@ -232,7 +242,7 @@ private Action action;
                             .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 238, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE)
+                        .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 84, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
                         .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 228, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
@@ -294,59 +304,76 @@ private Action action;
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        this.formResult = true;
-        this.setVisible(false);
-    }//GEN-LAST:event_jButton1ActionPerformed
+    private void primaryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_primaryButtonActionPerformed
+        String validNameFormat = "(^\\w[\\w-]+$)";
+        if(this.action.getName()!=null &&   // checks if name is valid
+           Pattern.matches(validNameFormat,this.action.getName())){
+            this.formResult = true;
+            this.setVisible(false);
+        } else
+            JOptionPane.showMessageDialog(parent, "Action name invalid");
+    }//GEN-LAST:event_primaryButtonActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
         this.formResult = false;
         this.setVisible(false);
-    }//GEN-LAST:event_jButton2ActionPerformed
-
+    }//GEN-LAST:event_cancelButtonActionPerformed
+    /**
+     * Handles replace or add new field to default section.
+     * @param key
+     * @param value 
+     */
+    private void updateField(String key, String value){
+        try{
+            Map<String,String> defaultProps = (Map<String,String>)action.get("Definition");    // gets section default's properties map
+            if(defaultProps.containsKey(key))
+                defaultProps.replace(key, value);    // replaces ban action content
+            else
+                defaultProps.put(key, value);   // adds this key and value
+            updateProps();
+        } catch(Exception err){
+            JOptionPane.showMessageDialog(this, "Failed to update action field "+key);   // shows error message box
+        }
+    }
+    
     private void startTextAreaFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_startTextAreaFocusLost
         String content = this.startTextArea.getText();
         if(!content.isBlank()){
-        Map<String,String> defaultProps = (Map<String,String>)action.get("Definition");    // gets section default's properties map
-            defaultProps.replace("startaction", content);    // replaces ban action content
-            updateConfigureResult();
+            String key = "startaction";
+            updateField(key,content);
         }
     }//GEN-LAST:event_startTextAreaFocusLost
 
     private void stopTextAreaFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_stopTextAreaFocusLost
         String content = this.stopTextArea.getText();
+        String key = "stopaction";
         if(!content.isBlank()){
-        Map<String,String> defaultProps = (Map<String,String>)action.get("Definition");    // gets section default's properties map
-            defaultProps.replace("stopaction", content);    // replaces ban action content
-            updateConfigureResult();
+            updateField(key,content);
         }
     }//GEN-LAST:event_stopTextAreaFocusLost
 
     private void checkTextAreaFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_checkTextAreaFocusLost
         String content = this.checkTextArea.getText();
+        String key = "checkaction";
         if(!content.isBlank()){
-            Map<String,String> defaultProps = (Map<String,String>)action.get("Definition");    // gets section default's properties map
-            defaultProps.replace("checkaction", content);    // replaces ban action content
-            updateConfigureResult();
+            updateField(key,content);
         }
     }//GEN-LAST:event_checkTextAreaFocusLost
 
     private void banTextAreaFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_banTextAreaFocusLost
         String content = this.banTextArea.getText();
+        String key = "banaction";
         if(!content.isBlank()){
-        Map<String,String> defaultProps = (Map<String,String>)action.get("Definition");    // gets section default's properties map
-            defaultProps.replace("banaction", content);    // replaces ban action content
-            updateConfigureResult();
+            updateField(key,content);
         }
 
     }//GEN-LAST:event_banTextAreaFocusLost
 
     private void unbanTextAreaFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_unbanTextAreaFocusLost
         String content = this.unbanTextArea.getText();
+        String key = "unbanaction";
         if(!content.isBlank()){
-        Map<String,String> defaultProps = (Map<String,String>)action.get("Definition");    // gets section default's properties map
-            defaultProps.replace("unbanaction", content);    // replaces ban action content
-            updateConfigureResult();
+            updateField(key,content);
         }
     }//GEN-LAST:event_unbanTextAreaFocusLost
 
@@ -360,9 +387,9 @@ private Action action;
         if(!content.isBlank()){
             try {
                 action.setName(content);    // sets this action name
-                updateConfigureResult();
+                updateProps();
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Failed to parse action config string.");   // shows error message box
+                JOptionPane.showMessageDialog(this, "Failed to set action name.");   // shows error message box
             }
         }
     }//GEN-LAST:event_nameTextFieldFocusLost
@@ -384,23 +411,22 @@ private Action action;
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(ConfigureActionsForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ConfigureActionDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(ConfigureActionsForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ConfigureActionDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(ConfigureActionsForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ConfigureActionDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(ConfigureActionsForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ConfigureActionDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
         //</editor-fold>
-        //</editor-fold>
-        //</editor-fold>
+        
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                ConfigureActionsForm cform = new ConfigureActionsForm(null,false,null);
+                ConfigureActionDialog cform = new ConfigureActionDialog(null,false,null);
                 cform.setVisible(true);
 //                System.out.println("Test finished");
             }
@@ -409,10 +435,9 @@ private Action action;
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextArea banTextArea;
+    private javax.swing.JButton cancelButton;
     private javax.swing.JTextArea checkTextArea;
     private javax.swing.JTextArea configureResultTextArea;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -429,6 +454,7 @@ private Action action;
     private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JScrollPane jScrollPane7;
     private javax.swing.JTextField nameTextField;
+    private javax.swing.JButton primaryButton;
     private javax.swing.JTextArea startTextArea;
     private javax.swing.JTextArea stopTextArea;
     private javax.swing.JTextArea unbanTextArea;

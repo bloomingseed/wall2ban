@@ -5,20 +5,27 @@
  */
 package wall2ban.fail2ban.jailforms;
 
+import wall2ban.fail2ban.DefaultJailConfig;
+
 /**
  *
  * @author Admin
  */
-public class AdvancedJailForm extends javax.swing.JDialog {
-private boolean formResult;
+public class AdvancedJailDialog extends javax.swing.JDialog {
+    private boolean formResult;
+    private String configString;
     /**
      * Creates new form AdvancedJailForm2
      */
-    public AdvancedJailForm(java.awt.Frame parent, boolean modal) {
+    public AdvancedJailDialog(java.awt.Frame parent, boolean modal, String defaults) {
         super(parent, modal);
         initComponents();
+        this.configString = defaults;   // save DefaultJailConfig
+        
+        this.jTextArea1.setText(defaults); // shows original config string (with comments)
     }
-public boolean getFormResult(){return this.formResult;}
+    public boolean getFormResult(){return this.formResult;}
+    public String getConfigString(){return configString;}
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -36,7 +43,7 @@ public boolean getFormResult(){return this.formResult;}
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
-        jLabel1.setText("jLabel1");
+        jLabel1.setText("Default jail configurations:");
 
         jTextArea1.setColumns(20);
         jTextArea1.setRows(5);
@@ -70,7 +77,7 @@ public boolean getFormResult(){return this.formResult;}
                         .addGap(18, 18, 18)
                         .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 191, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -118,21 +125,23 @@ public boolean getFormResult(){return this.formResult;}
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(AdvancedJailForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(AdvancedJailDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(AdvancedJailForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(AdvancedJailDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(AdvancedJailForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(AdvancedJailDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(AdvancedJailForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(AdvancedJailDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
+        //</editor-fold>
         //</editor-fold>
         //</editor-fold>
 
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                AdvancedJailForm dialog = new AdvancedJailForm(new javax.swing.JFrame(), true);
+                AdvancedJailDialog dialog = new AdvancedJailDialog(null, true,null);
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {

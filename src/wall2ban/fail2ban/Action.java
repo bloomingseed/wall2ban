@@ -41,6 +41,11 @@ public class Action extends HashMap<String,Map<String,String>> {
     public Action(){
         super();
         Map<String,String> defSect = new HashMap<String,String>();  // creates empty section
+        defSect.put("actionstart", "");
+        defSect.put("actionstop", "");
+        defSect.put("actioncheck", "");
+        defSect.put("actionban", "");
+        defSect.put("actionunban", "");
         this.put("Definition", defSect);    // puts to filter config
     }
     /**
@@ -70,7 +75,10 @@ public class Action extends HashMap<String,Map<String,String>> {
     public boolean equals(Object obj){
         try{
             Action act = (Action)obj;
-            return act.getName().equals(this.name);
+            String name = act.getName();
+            String oname = act.getOriginalName();
+            return (oname!=null && oname.equals(this.originalName))||
+                    (name!=null && name.equals(this.name));
         } catch(ClassCastException err){
             return false;
         }
@@ -101,7 +109,7 @@ public class Action extends HashMap<String,Map<String,String>> {
             sbuilder.append(String.format("[%s]\n",(String)sectionKey));
             for(Object property : propMap.keySet()){   // loops through each property in this jail
                 // adds property and value pair to builder
-                sbuilder.append(String.format("\t%s = %s\n",(String)property,(String)propMap.get(property)));
+                sbuilder.append(String.format("%s = %s\n",(String)property,(String)propMap.get(property)));
 
             }
         }
@@ -118,8 +126,8 @@ public class Action extends HashMap<String,Map<String,String>> {
     public static Action parseAction(String configString) throws Exception{
         String[] lines = configString.split("\n");    // splits config string by lines
          int N = lines.length;  // gets number of lines
-        String sectionFormat = "(^\\s*\\[([\\w-]+)\\]\\s*$)";
-        String propertyFormat = "(^\\s*([\\w-_]+)\\s*=([^\\n]*)$)";
+        String sectionFormat = "(^\\s*\\[([^\\n]+)\\]\\s*$)";
+        String propertyFormat = "(^([\\w-_]+)\\s*=([^\\n]*)$)";
         
         Pattern sectionPattern = Pattern.compile(sectionFormat);    // creates a pattern for sections
         Pattern propertyPattern = Pattern.compile(propertyFormat);    // creates a pattern for section properties
@@ -204,6 +212,11 @@ public class Action extends HashMap<String,Map<String,String>> {
             }
         }
     } 
+    
+    @Override
+    public String toString(){
+        return this.name;
+    }
     
     public static void main(String[] args) throws IOException{
         test3();

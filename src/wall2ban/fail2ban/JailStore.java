@@ -72,8 +72,12 @@ public class JailStore implements IStore<Jail,Object>{
     public JailStore() throws IOException, Exception {
         bi = new BashInterpreter();
         getAllJails();  
-        getAllActiveJails();
-        updateBannedIps();
+        try{
+            getAllActiveJails();
+            updateBannedIps();
+        } catch(Exception err){
+            System.out.println(err.getMessage());
+        }
         cleanUp();
     }
     
@@ -205,6 +209,10 @@ public class JailStore implements IStore<Jail,Object>{
         }
     }
     
+    public void setDefaultJailConfig(DefaultJailConfig config){
+        this.jailConfig = config;
+    }
+    
     private void getAllActiveJails() throws Exception{
         activeJails = new HashMap<Jail,List<String>>(); // creates empty list
         String command = "fail2ban-client status";  // defines the shell command
@@ -313,6 +321,7 @@ public class JailStore implements IStore<Jail,Object>{
     public void create(Jail entity) throws Exception {
         if(entity==null || jails.contains(entity)) // checks if such jail is null or has existed
             throw new Exception("Invalid jail");
+//        if(entity.get(""))
         jails.add(entity);  // adds to jails list
         saveJail(entity);   // saves jail to disk
         
@@ -356,7 +365,7 @@ public class JailStore implements IStore<Jail,Object>{
      * @param ip IP to be unbanned.
      * @throws java.lang.Exception If unban action failed.
      */
-    public void unbanJail(Jail jail, String ip) throws Exception{
+    public void unbanIP(Jail jail, String ip) throws Exception{
         
         String command = String.format("fail2ban-client set %s unbanip %s",jail.getName(),ip);
         if(bi.executeRoot(command)!=0)
@@ -365,20 +374,31 @@ public class JailStore implements IStore<Jail,Object>{
     }
     
     /**
-     * Unbans all IPs in all active jails.
-     * @throws java.lang.Exception If unban all failed.
+     * Unbans all IPs in an active jails.
+     * @param activeJail A {@link Map.Entry} of active jail.
+     * @throws java.lang.Exception If unbaning failed for any IP.
      */
-    public void unbanAll() throws Exception{
-        String command = String.format("fail2ban-client unban --all");
-        if(bi.executeRoot(command)!=0)
-            throw new Exception("Failed to unban all");
-        
+    public void unbanJail(Map.Entry<Jail,List<String>> activeJail) throws Exception{
+        String jailName = activeJail.getKey().getName();
+        List<String> ipList = activeJail.getValue();
+        StringBuilder builder=  new StringBuilder();    // creates new builder to write fail message
+        while(ipList.size()>0){
+            String ip = ipList.get(0);  // gets first ip in list
+            String command = String.format("fail2ban-client set %s unbanip %s",jailName,ip);
+            if(bi.executeRoot(command)!=0)  // executes command as root then checks if execution failed
+                builder.append("Failed to unban IP ").append(ip).append("\n");
+            else
+                ipList.remove(0); // removes first ip
+        }
+        String errorMessage = builder.toString();   // gets error messages
+        if(!errorMessage.isBlank())  // checks if has any error messages
+            throw new Exception(errorMessage);
     }
     
     
     public static void main(String[] args) throws IOException, Exception{
         
-        test3();
+        test4();
         System.out.println("Test completed");
     }
     
@@ -436,8 +456,8 @@ public class JailStore implements IStore<Jail,Object>{
             System.out.println();
         }
         
-        jailStore.unbanJail(banjail, "10.0.11.11");
-        jailStore.banJail(banjail, banip);
+//        jailStore.unbanJail(banjail, "10.0.11.11");
+//        jailStore.banJail(banjail, banip);
         // display active jails and banned ips
         for(Map.Entry<Jail,List<String>> entry : jailStore.readActiveJails().entrySet()){
             Jail jail = entry.getKey();
@@ -448,8 +468,8 @@ public class JailStore implements IStore<Jail,Object>{
             System.out.println();
         }
         
-        jailStore.unbanAll();
-        jailStore.banJail(banjail, banip);
+//        jailStore.unbanAll(jailStore.readActiveByKey(banjail.getName()));
+//        jailStore.banJail(banjail, banip);
         // display active jails and banned ips
         for(Map.Entry<Jail,List<String>> entry : jailStore.readActiveJails().entrySet()){
             Jail jail = entry.getKey();
@@ -459,6 +479,18 @@ public class JailStore implements IStore<Jail,Object>{
                 System.out.print(ip+" ");
             System.out.println();
         }
+    }
+    public static void test4() throws Exception{
+        JailStore jailStore = new JailStore();
+        Jail jail = jailStore.readByKey("hello-world");
+        jail.setName("foo-hello-world");
+        
+        jailStore.update(jail);
+        jail.setName("hello-world");
+        
+        jailStore.update(jail);
+        
+        
     }
 }
 

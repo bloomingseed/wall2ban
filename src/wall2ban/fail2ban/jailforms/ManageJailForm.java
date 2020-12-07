@@ -5,27 +5,65 @@
  */
 package wall2ban.fail2ban.jailforms;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.DefaultListModel;
+import javax.swing.JOptionPane;
 import wall2ban.DeleteForm;
-import wall2ban.fail2ban.jailforms.ConfigureJailForm;
-import wall2ban.DeleteForm;
+import wall2ban.fail2ban.DefaultJailConfig;
 import wall2ban.fail2ban.Jail;
+import wall2ban.fail2ban.JailStore;
 
 /**
  *
  * @author Admin
  */
 public class ManageJailForm extends javax.swing.JFrame {
-private boolean formResult;
+
+    private JailStore jailStore;
+    
 
     /**
      * Creates new form ManageJailForm2
      */
-    public ManageJailForm() {
+    public ManageJailForm(JailStore jailStore) {
         super();
         initComponents();
+        this.jailStore = jailStore;
+        
+        bindDefaults();
+        bindJailsList();
+        
     }
+    
+    /**
+     * Shows default configs to view.
+     */
+    private void bindDefaults(){
+        Map<String,String> defaults = jailStore.getDefaultJailConfig().get("DEFAULT");
+        this.ignoreIpTextField.setText(defaults.get("ignoreip"));
+        this.banTimeTextField.setText(defaults.get("bantime"));
+        this.findTimeTextField.setText(defaults.get("findtime"));
+        this.maxRetryTextField.setText(defaults.get("maxretry"));
+    }
+    private void bindJailsList(){
+        List<String> jailNames = new ArrayList<String>();
+        for(Jail jail : jailStore.readAll())
+            jailNames.add(jail.getName());
+        Comparator c = new Comparator<String>(){
+            @Override
+            public int compare(String a, String b){return a.compareTo(b);}
+        };
+        jailNames.sort(c);  // sorts jail names ascending
+        DefaultListModel<String> model = new DefaultListModel<String>();
+        model.addAll(jailNames);    // adds all names to model
+        this.jailsJList.setModel(model);
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -35,12 +73,11 @@ private boolean formResult;
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jTextField3 = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
-        jTextField4 = new javax.swing.JTextField();
-        jButton2 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
+        editButton = new javax.swing.JButton();
+        maxRetryTextField = new javax.swing.JTextField();
+        createButton = new javax.swing.JButton();
+        advancedButton = new javax.swing.JButton();
+        deleteButton = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
@@ -48,46 +85,48 @@ private boolean formResult;
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jTextField2 = new javax.swing.JTextField();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        jList2 = new javax.swing.JList<>();
-        jScrollPane4 = new javax.swing.JScrollPane();
+        ignoreIpTextField = new javax.swing.JTextField();
+        banTimeTextField = new javax.swing.JTextField();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        jailsJList = new javax.swing.JList<>();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList<>();
+        definitionTextArea = new javax.swing.JTextArea();
+        findTimeTextField = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
-        jTextField3.setText("jTextField3");
-
-        jButton1.setText("Edit");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        editButton.setText("Edit");
+        editButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                editButtonActionPerformed(evt);
             }
         });
 
-        jTextField4.setText("jTextField4");
-
-        jButton2.setText("Create Jail");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+        maxRetryTextField.setText(" ");
+        maxRetryTextField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                maxRetryTextFieldFocusLost(evt);
             }
         });
 
-        jButton4.setText("Advanced");
-        jButton4.addActionListener(new java.awt.event.ActionListener() {
+        createButton.setText("Create Jail");
+        createButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton4ActionPerformed(evt);
+                createButtonActionPerformed(evt);
             }
         });
 
-        jButton3.setText("Delete Jail");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        advancedButton.setText("Advanced");
+        advancedButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                advancedButtonActionPerformed(evt);
+            }
+        });
+
+        deleteButton.setText("Delete Jail");
+        deleteButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteButtonActionPerformed(evt);
             }
         });
 
@@ -109,36 +148,39 @@ private boolean formResult;
         jLabel1.setText("Jails");
         jLabel1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 
-        jTextField1.setText("jTextField1");
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField1ActionPerformed(evt);
+        ignoreIpTextField.setText(" ");
+        ignoreIpTextField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                ignoreIpTextFieldFocusLost(evt);
             }
         });
 
-        jTextField2.setText("jTextField2");
-
-        jList2.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
+        banTimeTextField.setText(" ");
+        banTimeTextField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                banTimeTextFieldFocusLost(evt);
+            }
         });
-        jList2.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        jList2.setAutoscrolls(false);
-        jList2.setLayoutOrientation(javax.swing.JList.HORIZONTAL_WRAP);
-        jList2.setVisibleRowCount(-1);
-        jScrollPane2.setViewportView(jList2);
 
-        jScrollPane3.setViewportView(jScrollPane2);
-
-        jList1.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
+        jailsJList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        jailsJList.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jailsJListMouseClicked(evt);
+            }
         });
-        jScrollPane1.setViewportView(jList1);
+        jScrollPane5.setViewportView(jailsJList);
 
-        jScrollPane4.setViewportView(jScrollPane1);
+        definitionTextArea.setEditable(false);
+        definitionTextArea.setColumns(20);
+        definitionTextArea.setRows(5);
+        jScrollPane1.setViewportView(definitionTextArea);
+
+        findTimeTextField.setText(" ");
+        findTimeTextField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                findTimeTextFieldFocusLost(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -147,131 +189,216 @@ private boolean formResult;
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 113, Short.MAX_VALUE)
-                            .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel4, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addComponent(jScrollPane4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 123, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, 113, Short.MAX_VALUE)
+                            .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 12, Short.MAX_VALUE)
-                        .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(35, 35, 35)
-                                .addComponent(jButton2)
-                                .addGap(29, 29, 29)
-                                .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 444, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addContainerGap())
+                                .addGap(6, 6, 6)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(ignoreIpTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(banTimeTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(advancedButton, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(findTimeTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, 113, Short.MAX_VALUE)
+                                .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(6, 6, 6)
+                                .addComponent(maxRetryTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(jScrollPane1)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(editButton, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(23, 23, 23)
+                                        .addComponent(createButton)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 30, Short.MAX_VALUE)
+                                        .addComponent(deleteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(advancedButton, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(10, 10, 10)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(ignoreIpTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 32, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(banTimeTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 32, Short.MAX_VALUE))
+                .addGap(13, 13, 13)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(findTimeTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 34, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(maxRetryTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(19, 19, 19)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(1, 1, 1))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(6, 6, 6)
-                                .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 203, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jTextField1, javax.swing.GroupLayout.DEFAULT_SIZE, 32, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jTextField2, javax.swing.GroupLayout.DEFAULT_SIZE, 32, Short.MAX_VALUE))
-                        .addGap(14, 14, 14)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jTextField3, javax.swing.GroupLayout.DEFAULT_SIZE, 32, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(35, 35, 35)))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 203, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton1)
-                            .addComponent(jButton2)
-                            .addComponent(jButton3)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                            .addComponent(editButton)
+                            .addComponent(createButton)
+                            .addComponent(deleteButton)))
+                    .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
   
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-    try {
-        ConfigureJailForm cjailform = new ConfigureJailForm(this, true, null);
-        cjailform.setButtonName("Edit");
-        cjailform.setVisible(true);
-    } catch (Exception ex) {
-        Logger.getLogger(ManageJailForm.class.getName()).log(Level.SEVERE, null, ex);
-    }
-        
-    }//GEN-LAST:event_jButton1ActionPerformed
+    private void editButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editButtonActionPerformed
+        if(this.jailsJList.getSelectedIndex()>=0){    // checks if user clicked a valid item
+            String jailName = this.jailsJList.getSelectedValue();   // gets selected jail name
+            Jail jail = jailStore.readByKey(jailName);  // gets jail from list
+            ConfigureJailDialog form = new ConfigureJailDialog(this,true,jail); // creates new config form to edit jail
+            form.setVisible(true);  // shows form and waits
+            if(form.getFormResult()){   // checks if operation succeeded
+                Jail newJail = form.getJail(); // gets updated jail
+                try {
+                    jailStore.update(newJail);  // updates jail
+                    bindJailsList();      // updates jails list in view
+                } catch (Exception err) {
+                    JOptionPane.showMessageDialog(this, "Failed to update jail.\nError: "+err.getMessage());
+                }
+                
+            }
+        }
+    }//GEN-LAST:event_editButtonActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-    try {
-        ConfigureJailForm cjailform = new ConfigureJailForm(this,true,null);
-        cjailform.setVisible(true);
-    } catch (Exception ex) {
-        Logger.getLogger(ManageJailForm.class.getName()).log(Level.SEVERE, null, ex);
-    }
-    }//GEN-LAST:event_jButton2ActionPerformed
+    private void createButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createButtonActionPerformed
+        if(this.jailsJList.getSelectedIndex()>=0){    // checks if user clicked a valid item
+            ConfigureJailDialog form = new ConfigureJailDialog(this,true,null); // creates new config form to edit jail
+            form.setVisible(true);  // shows form and waits
+            if(form.getFormResult()){   // checks if operation succeeded
+                Jail newJail = form.getJail(); // gets new jail
+                try {
+                    jailStore.create(newJail);  // updates jail
+                    bindJailsList();      // updates jails list in view
+                } catch (Exception err) {
+                    JOptionPane.showMessageDialog(this, "Failed to create jail.\nError: "+err.getMessage());
+                }
+                
+            }
+        }
+    }//GEN-LAST:event_createButtonActionPerformed
 
-    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        AdvancedJailForm adJailForm = new AdvancedJailForm(this, true);
-        adJailForm.setVisible(formResult);
-    }//GEN-LAST:event_jButton4ActionPerformed
+    private void advancedButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_advancedButtonActionPerformed
+        AdvancedJailDialog adJailForm = new AdvancedJailDialog(this, true, this.jailStore.getDefaultJailConfig().toConfigString());
+        adJailForm.setVisible(true);    // shows form
+        if(adJailForm.getFormResult()){ // checks if operation succeeded
+            String newConfig = adJailForm.getConfigString();
+            this.jailStore.setDefaultJailConfig(DefaultJailConfig.parseDefaultJailConfig(newConfig));
+            bindDefaults(); // updates default values to view.
+        }
+    }//GEN-LAST:event_advancedButtonActionPerformed
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+    private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
       DeleteForm delJailForm = new DeleteForm(this, true);
-      String jailName = jList1.getSelectedValue();  // gets selected jail's name
-      delJailForm.setName(jailName);
+      int index=jailsJList.getSelectedIndex();
+      if(index<0) 
+              return;
+      String jailName = jailsJList.getSelectedValue();  // gets selected jail's name
+      delJailForm.setMessage("Delete jail "+jailName+" ?");
       delJailForm.setButtonName("Delete");
       delJailForm.setVisible(true); // shows form and waits
       boolean res = delJailForm.getFormResult();    // gets result
       if(res){  // checks if delete button clicked
-          Jail jail = null; // gets selected jail
-            // deletes jail
+          Jail jail = this.jailStore.readByKey(jailName); // gets selected jail
+          try {
+              jailStore.delete(jail);   // deletes jail
+              bindJailsList();    // updates jails list
+          } catch (Exception err) {
+              JOptionPane.showMessageDialog(this, "Failed to delete jail.\nError: "+err.getMessage());
+          }
       }
-    }//GEN-LAST:event_jButton3ActionPerformed
+    }//GEN-LAST:event_deleteButtonActionPerformed
 
-    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField1ActionPerformed
+    /**
+     * Handles adds or replaces default value in Default section of the
+     * Default Jail Config.
+     * @param key
+     * @param value 
+     */
+    private void updateField(String key, String value){
+        Map<String,String> defaults = this.jailStore.getDefaultJailConfig().get("DEFAULTS");    // gets section default's properties map
+        if(defaults.containsKey(key))
+           defaults.replace(key, value);    // replaces ban jail content
+       else
+           defaults.put(key, value);   // adds this key and value
+        updateProps();
+    }
+    /**
+     * Updates some default properties to view.
+     */
+    private void updateProps(){
+        Map<String,String> map = this.jailStore.getDefaultJailConfig().get("DEFAULTS");    // gets section default's properties map
+        this.ignoreIpTextField.setText(map.get("ignoreip"));
+        this.banTimeTextField.setText(map.get("bantime"));
+        this.findTimeTextField.setText(map.get("findtime"));
+        this.maxRetryTextField.setText(map.get("maxretry"));
+        updateConfigTextArea();
+    }
+    /**
+     * Updates jail config text area to displays config string of selected jail.
+     */
+    private void updateConfigTextArea(){
+        int index = this.jailsJList.getSelectedIndex();
+        if(index>=0){   // checks if user selected a valid item
+            String jailName = this.jailsJList.getSelectedValue();
+            Jail jail = jailStore.readByKey(jailName);    // gets jail in list
+            this.definitionTextArea.setText(jail.toConfigString()); // sets config string for text area
+            
+        }
+    }
+    
+    private void findTimeTextFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_findTimeTextFieldFocusLost
+        String content = this.ignoreIpTextField.getText();
+        updateField("findtime",content);
+    }//GEN-LAST:event_findTimeTextFieldFocusLost
+
+    private void ignoreIpTextFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_ignoreIpTextFieldFocusLost
+        String content = this.ignoreIpTextField.getText();
+        updateField("ignoreip",content);
+    }//GEN-LAST:event_ignoreIpTextFieldFocusLost
+
+    private void banTimeTextFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_banTimeTextFieldFocusLost
+        String content = this.ignoreIpTextField.getText();
+        updateField("bantime",content);
+    }//GEN-LAST:event_banTimeTextFieldFocusLost
+
+    private void maxRetryTextFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_maxRetryTextFieldFocusLost
+        String content = this.ignoreIpTextField.getText();
+        updateField("maxretry",content);
+    }//GEN-LAST:event_maxRetryTextFieldFocusLost
+
+    private void jailsJListMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jailsJListMouseClicked
+        updateConfigTextArea();
+    }//GEN-LAST:event_jailsJListMouseClicked
 
     /**
      * @param args the command line arguments
@@ -304,23 +431,32 @@ private boolean formResult;
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                ManageJailForm dialog = new ManageJailForm();
-                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-                    @Override
-                    public void windowClosing(java.awt.event.WindowEvent e) {
-                        System.exit(0);
-                    }
-                });
-                dialog.setVisible(true);
+                try {
+                    JailStore jstore = new JailStore();
+                    ManageJailForm dialog = new ManageJailForm(jstore);
+                    dialog.addWindowListener(new java.awt.event.WindowAdapter() {
+                        @Override
+                        public void windowClosing(java.awt.event.WindowEvent e) {
+                            System.exit(0);
+                        }
+                    });
+                    dialog.setVisible(true);
+                } catch (Exception ex) {
+                    Logger.getLogger(ManageJailForm.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
+    private javax.swing.JButton advancedButton;
+    private javax.swing.JTextField banTimeTextField;
+    private javax.swing.JButton createButton;
+    private javax.swing.JTextArea definitionTextArea;
+    private javax.swing.JButton deleteButton;
+    private javax.swing.JButton editButton;
+    private javax.swing.JTextField findTimeTextField;
+    private javax.swing.JTextField ignoreIpTextField;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -328,15 +464,9 @@ private boolean formResult;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JList<String> jList1;
-    private javax.swing.JList<String> jList2;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
-    private javax.swing.JTextField jTextField4;
+    private javax.swing.JScrollPane jScrollPane5;
+    private javax.swing.JList<String> jailsJList;
+    private javax.swing.JTextField maxRetryTextField;
     // End of variables declaration//GEN-END:variables
 }
