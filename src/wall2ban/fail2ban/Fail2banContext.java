@@ -41,12 +41,13 @@ public class Fail2banContext {
         String command = "fail2ban-client start";
         if(bi.executeRoot(command)!=0)
             throw new Exception("Failed to start fail2ban-client");
-        reloadContext();
+        reloadContext();    // reloads all data
     }
     public void deactivate() throws Exception{
         String command = "fail2ban-client stop";
         if(bi.executeRoot(command)!=0)
             throw new Exception("Failed to start fail2ban-client");
+        jailStore.getAllActiveJails();  // updates active jails list
     }
     
     

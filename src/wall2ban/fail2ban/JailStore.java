@@ -22,7 +22,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import wall2ban.BashInterpreter;
 import wall2ban.IStore;
-import wall2ban.Utilities.Utils;
+import utils.Utilities.Utils;
 
 /**
  * Data access class for fail2ban jails.
@@ -74,7 +74,6 @@ public class JailStore implements IStore<Jail,Object>{
         getAllJails();  
         try{
             getAllActiveJails();
-            updateBannedIps();
         } catch(Exception err){
             System.out.println(err.getMessage());
         }
@@ -213,7 +212,7 @@ public class JailStore implements IStore<Jail,Object>{
         this.jailConfig = config;
     }
     
-    private void getAllActiveJails() throws Exception{
+    public void getAllActiveJails() throws Exception{
         activeJails = new HashMap<Jail,List<String>>(); // creates empty list
         String command = "fail2ban-client status";  // defines the shell command
         if(bi.executeRoot(command)!=0)  // executes command then checks if it failed
@@ -233,6 +232,7 @@ public class JailStore implements IStore<Jail,Object>{
             if(jail==null)  // checks if it doesn't listed
                 throw new Exception("Failed to get jail "+jailName);
             activeJails.put(jail,null);  //adds it to list of active jails
+            updateBannedIps(jail);  // binds banned ips list for the jail
         }
                 
     }
@@ -272,26 +272,27 @@ public class JailStore implements IStore<Jail,Object>{
     /**
      * Updates list of banned IPs of {@link activeJails}.
      */
-    public void updateBannedIps() throws Exception{
-        for(Map.Entry<Jail,List<String>> entry : activeJails.entrySet()){
-            String command = "fail2ban-client status "+entry.getKey().getName();  // defines the shell command
-            if(bi.executeRoot(command)!=0)  // executes the command then checks if it failed
-                throw new Exception("Failed to get status of "+entry.getKey().getName()); 
-            String[] resLines = bi.getResponse().split("\n");   // splits response by lines
-            // gets last line then takes part containing list of banned ips
-            String[] ipLine = resLines[resLines.length-1].split("[^\\n]*Banned IP list:\\s*");
-            
-            List<String> ipList = new ArrayList<String>();
-            try{
-                String ipsString = ipLine[1];   // gets second part of ipLine containing ips
-                String[] ips = ipsString.split("\\s+");    // splits ip list to array
-                for(String ip : ips)    // loops through each ip
-                    ipList.add(ip); // adds to list
-            } catch(java.lang.ArrayIndexOutOfBoundsException err){  // in case failed to get ips string
-                System.out.println(entry.getKey().getName()+" has no banned IPs");
-            }
-            entry.setValue(ipList);    // sets the banned IPs to for this jail
+    private void updateBannedIps(Jail jail) throws Exception{
+        if(!activeJails.containsKey(jail))  // checks if jail isn't activated
+            throw new Exception("Jail is inactivated");
+        String command = "fail2ban-client status "+jail.getName();  // defines the shell command
+        if(bi.executeRoot(command)!=0)  // executes the command then checks if it failed
+            throw new Exception("Failed to get status of "+jail.getName()); 
+        String[] resLines = bi.getResponse().split("\n");   // splits response by lines
+        // gets last line then takes part containing list of banned ips
+        String[] ipLine = resLines[resLines.length-1].split("[^\\n]*Banned IP list:\\s*");
+
+        List<String> ipList = new ArrayList<String>();  // creates new ips list
+        try{
+            String ipsString = ipLine[1];   // gets second part of ipLine containing ips
+            String[] ips = ipsString.split("\\s+");    // splits ip list to array
+            for(String ip : ips)    // loops through each ip
+                ipList.add(ip); // adds to list
+        } catch(java.lang.ArrayIndexOutOfBoundsException err){  // in case failed to get ips string
+            System.out.println(jail.getName()+" has no banned IPs");
         }
+        
+        activeJails.replace(jail,ipList);    // sets the banned IPs to for this jail
     }
     
     
@@ -356,7 +357,7 @@ public class JailStore implements IStore<Jail,Object>{
         String command = String.format("fail2ban-client set %s banip %s",jail.getName(),ip);
         if(bi.executeRoot(command)!=0)
             throw new Exception(String.format("Failed to ban IP %s for jail %s",ip,jail.getName()));
-        
+        this.activeJails.get(jail).add(ip); // adds ip to banned list
     }
     
     /**
@@ -370,7 +371,7 @@ public class JailStore implements IStore<Jail,Object>{
         String command = String.format("fail2ban-client set %s unbanip %s",jail.getName(),ip);
         if(bi.executeRoot(command)!=0)
             throw new Exception(String.format("Failed to unban IP %s for jail %s",ip,jail.getName()));
-        
+        this.activeJails.get(jail).remove(ip);  // removes ip from banned list
     }
     
     /**
@@ -378,17 +379,14 @@ public class JailStore implements IStore<Jail,Object>{
      * @param activeJail A {@link Map.Entry} of active jail.
      * @throws java.lang.Exception If unbaning failed for any IP.
      */
-    public void unbanJail(Map.Entry<Jail,List<String>> activeJail) throws Exception{
-        String jailName = activeJail.getKey().getName();
-        List<String> ipList = activeJail.getValue();
+    public void unbanJail(Jail jail) throws Exception{
+        if(!activeJails.containsKey(jail))
+            throw new Exception("Jail inactive");
+        List<String> ipList = activeJails.get(jail);
         StringBuilder builder=  new StringBuilder();    // creates new builder to write fail message
         while(ipList.size()>0){
             String ip = ipList.get(0);  // gets first ip in list
-            String command = String.format("fail2ban-client set %s unbanip %s",jailName,ip);
-            if(bi.executeRoot(command)!=0)  // executes command as root then checks if execution failed
-                builder.append("Failed to unban IP ").append(ip).append("\n");
-            else
-                ipList.remove(0); // removes first ip
+            unbanIP(jail,ip);   // unbans ip
         }
         String errorMessage = builder.toString();   // gets error messages
         if(!errorMessage.isBlank())  // checks if has any error messages

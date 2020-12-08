@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import wall2ban.StringUpdater;
-import wall2ban.Utilities;
+import utils.Utilities;
 
 /**
  * A Bean model representing a fail2ban action.

@@ -48,8 +48,6 @@ public class Fail2banPanel extends javax.swing.JPanel {
         
         boolean activated = context.isActivated();  // gets fail2ban client status
         handleStateChange(activated);   // handles current state
-        
-        bindActiveJails();  // initializes lists
     }
     
     
@@ -246,6 +244,7 @@ public class Fail2banPanel extends javax.swing.JPanel {
         this.manualBanButton.setEnabled(isActivated);
         this.unbanButton.setEnabled(isActivated);
         this.unbanallButton.setEnabled(isActivated);
+        bindActiveJails();  // initializes list of active jails
     }
     
     
@@ -289,21 +288,23 @@ public class Fail2banPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_manageJailsButtonActionPerformed
 
     private void manualBanButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_manualBanButtonActionPerformed
+        if(this.activeJailsList.getSelectedIndex()<0)   // checks if user clicked a valid item
+            return;
+        String jailName = this.activeJailsList.getSelectedValue();  // gets jail name to get
+        Jail jail = this.context.getJailStore().readByKey(jailName); // gets jail from list
         ManualBanDialog banDialog = new ManualBanDialog(parent,true);
         List<String> jailNames = new ArrayList<String>();
         for(Jail key : context.getJailStore().readActiveJails().keySet())
             jailNames.add(key.getName());   // adds jail name to list
         banDialog.setJailsComboBoxItems(jailNames); // sets jail names to dialog combo box
-        banDialog.setSelectedJail(this.activeJailsList.getSelectedValue()); // sets selected jail as combobox initial value
-        banDialog.setVisible(true);
+        banDialog.setSelectedJail(jailName); // sets selected jail as combobox initial value
+        banDialog.setVisible(true); // shows dialog
         
         if(banDialog.getFormResult()==true){    // checks if result is true
-            Jail jail = context.getJailStore().readActiveByKey(banDialog.getSelectedJailName()).getKey();    // finds the selected jail
             String ip = banDialog.getIP();  // gets selected ip to be banned
             
             try{
                 this.context.getJailStore().banJail(jail, ip);
-                this.context.getJailStore().updateBannedIps();
                 bindBannedIps(this.activeJailsList.getSelectedIndex());
             } catch(Exception err){
                 System.out.println(err.getMessage());   // logs error to console
@@ -328,7 +329,6 @@ public class Fail2banPanel extends javax.swing.JPanel {
             Jail jail = context.getJailStore().readActiveByKey(jailName).getKey();
             try{
                 context.getJailStore().unbanIP(jail, ip);
-                context.getJailStore().updateBannedIps(); // reparses the banned ip for all active jails
                 bindBannedIps(this.activeJailsList.getSelectedIndex());
             } catch(Exception err){
                 System.out.println(err.getMessage());
@@ -338,15 +338,16 @@ public class Fail2banPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_unbanButtonActionPerformed
 
     private void unbanallButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_unbanallButtonActionPerformed
-        Map.Entry<Jail,List<String>> activeJail = context.getJailStore().readActiveByKey(this.activeJailsList.getSelectedValue());
-        Jail jail = activeJail.getKey();
+        if(this.activeJailsList.getSelectedIndex()<0)   // checks if user clicked a valid item
+            return;
+        String jailName = this.activeJailsList.getSelectedValue();  // gets jail name to get
+        Jail jail = this.context.getJailStore().readByKey(jailName); // gets jail from list
         UnbanAllDialog unbanAllDialog = new UnbanAllDialog(parent,true);
         unbanAllDialog.setDisplayJailName(jail.getName());
-        unbanAllDialog.setVisible(true);
+        unbanAllDialog.setVisible(true);    // shows dialog
         if(unbanAllDialog.getFormResult()){ // checks if user pressed primary button
             try{
-                context.getJailStore().unbanJail(activeJail); // unbans all ips of this jail
-                context.getJailStore().updateBannedIps();
+                context.getJailStore().unbanJail(jail); // unbans all ips of this jail
                 bindBannedIps(this.activeJailsList.getSelectedIndex());
             } catch(Exception err){
                 JOptionPane.showMessageDialog(this, err.getMessage());  // shows error dialog

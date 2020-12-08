@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import wall2ban.IStore;
-import wall2ban.Utilities;
+import utils.Utilities;
 
 /**
  * Data access class for fail2ban filters.
