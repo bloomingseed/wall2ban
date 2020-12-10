@@ -13,7 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
-import wall2ban.DeleteForm;
+import wall2ban.ConfirmForm;
 import wall2ban.fail2ban.DefaultJailConfig;
 import wall2ban.fail2ban.Jail;
 import wall2ban.fail2ban.JailStore;
@@ -276,6 +276,7 @@ public class ManageJailForm extends javax.swing.JFrame {
             String jailName = this.jailsJList.getSelectedValue();   // gets selected jail name
             Jail jail = jailStore.readByKey(jailName);  // gets jail from list
             ConfigureJailDialog form = new ConfigureJailDialog(this,true,jail); // creates new config form to edit jail
+            form.setLocationRelativeTo(this);  // sets dialog center to this form
             form.setVisible(true);  // shows form and waits
             if(form.getFormResult()){   // checks if operation succeeded
                 Jail newJail = form.getJail(); // gets updated jail
@@ -293,6 +294,7 @@ public class ManageJailForm extends javax.swing.JFrame {
     private void createButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createButtonActionPerformed
         if(this.jailsJList.getSelectedIndex()>=0){    // checks if user clicked a valid item
             ConfigureJailDialog form = new ConfigureJailDialog(this,true,null); // creates new config form to edit jail
+            form.setLocationRelativeTo(this);  // sets dialog center to this form
             form.setVisible(true);  // shows form and waits
             if(form.getFormResult()){   // checks if operation succeeded
                 Jail newJail = form.getJail(); // gets new jail
@@ -309,6 +311,7 @@ public class ManageJailForm extends javax.swing.JFrame {
 
     private void advancedButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_advancedButtonActionPerformed
         AdvancedJailDialog adJailForm = new AdvancedJailDialog(this, true, this.jailStore.getDefaultJailConfig().toConfigString());
+        adJailForm.setLocationRelativeTo(this);  // sets dialog center to this form
         adJailForm.setVisible(true);    // shows form
         if(adJailForm.getFormResult()){ // checks if operation succeeded
             String newConfig = adJailForm.getConfigString();
@@ -318,13 +321,13 @@ public class ManageJailForm extends javax.swing.JFrame {
     }//GEN-LAST:event_advancedButtonActionPerformed
 
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
-      DeleteForm delJailForm = new DeleteForm(this, true);
+      ConfirmForm delJailForm = new ConfirmForm(this, true);
       int index=jailsJList.getSelectedIndex();
       if(index<0) 
               return;
       String jailName = jailsJList.getSelectedValue();  // gets selected jail's name
+      delJailForm.setLocationRelativeTo(this);  // sets dialog center to this form
       delJailForm.setMessage("Delete jail "+jailName+" ?");
-      delJailForm.setButtonName("Delete");
       delJailForm.setVisible(true); // shows form and waits
       boolean res = delJailForm.getFormResult();    // gets result
       if(res){  // checks if delete button clicked

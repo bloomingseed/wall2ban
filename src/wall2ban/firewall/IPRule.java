@@ -21,7 +21,11 @@ public class IPRule {
      * E.g: DROP, ACCEPT, RETURN or other chain. For simplicity, it is of type {@code String}.
      */
     private String target;
-    private String sourceIp, destIp, protocol;
+    /**
+     * IP address can be IPv4 address or "any" meaning 0.0.0.0.
+     */
+    private String sourceIp, destIp;
+    private String protocol;
     private int sourcePort, destPort;
     /**
      * The {@code chain} this rule belongs to. E.g: INPUT, OUTPUT, FORWARD or a custom chain. The default value is {@code null}.
@@ -115,12 +119,12 @@ public class IPRule {
     
     final public void setSourceIp(String sourceIp) throws Exception {
         
-        if(!sourceIp.equals("any") && !isIpv4Address(sourceIp))
+        if(!sourceIp.isBlank() && !isIpv4Address(sourceIp))
             throw new Exception("Invalid IP address");
         this.sourceIp= sourceIp;
     }
     final public void setDestinationIp(String destIp) throws Exception {
-        if(!destIp.equals("any") && !isIpv4Address(destIp))
+        if(!destIp.isBlank() && !isIpv4Address(destIp))
             throw new Exception("Invalid IP address");
         this.destIp=destIp;
     }
@@ -135,12 +139,12 @@ public class IPRule {
         protocol=newProtocol;
     }
     final public void setSourcePort(int sourcePort) throws Exception {
-        if(sourcePort<0)
+        if(sourcePort<0 || sourcePort>65535)
             throw new Exception("Invalid port number");
         this.sourcePort = sourcePort;
     }
     final public void setDestinationPort(int destPort) throws Exception {
-        if(destPort<0)
+        if(destPort<0 || destPort>65535)
             throw new Exception("Invalid port number");
         this.destPort = destPort;
     }
@@ -155,10 +159,6 @@ public class IPRule {
             // add this rule to owner's rule list
             chain.getRules().add(this);
         }
-        else{
-            // remove this rule from owner's rule list
-            chain.getRules().remove(this);
-        }
     }
     
     @Override
@@ -167,9 +167,9 @@ public class IPRule {
         // defines order for properties
         sb.append("-p ").append(protocol).
            append(sourceIp.isBlank()?"":" -s "+sourceIp).
-           append(" --sport").append(" ").append(sourcePort).
-           append(destIp.isBlank()?"":" -s "+destIp).
-           append(" --dport").append(" ").append(destPort).
+           append(sourcePort==0?"":" --sport "+sourcePort).
+           append(destIp.isBlank()?"":" -d "+destIp).
+           append(destPort==0?"":" --dport "+destPort).
            append(" -j").append(" ").append(target);
         return sb.toString();
     }

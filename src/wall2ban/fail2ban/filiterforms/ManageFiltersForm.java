@@ -10,7 +10,7 @@ import java.util.Comparator;
 import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
-import wall2ban.DeleteForm;
+import wall2ban.ConfirmForm;
 import wall2ban.fail2ban.Filter;
 import wall2ban.fail2ban.FilterStore;
 
@@ -171,6 +171,7 @@ public class ManageFiltersForm extends javax.swing.JFrame {
             String actionName = this.filtersJList.getSelectedValue();   // gets selected action name
             Filter action = filterStore.readByKey(actionName);  // gets action from list
             ConfigureFilterDialog form = new ConfigureFilterDialog(this,true,action); // creates new config form to edit action
+            form.setLocationRelativeTo(this);  // sets dialog center to this form
             form.setVisible(true);
             if(form.getFormResult()){   // checks if operation succeeded
                 Filter newFilter = form.getFilter(); // gets updated action
@@ -188,6 +189,7 @@ public class ManageFiltersForm extends javax.swing.JFrame {
     private void createButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createButtonActionPerformed
         if(this.filtersJList.getSelectedIndex()>=0){    // checks if user clicked a valid item
             ConfigureFilterDialog form = new ConfigureFilterDialog(this,true,null); // creates new config form to edit action
+            form.setLocationRelativeTo(this);  // sets dialog center to this form
             form.setVisible(true);
             if(form.getFormResult()){   // checks if operation succeeded
                 Filter newFilter = form.getFilter(); // gets updated action
@@ -207,7 +209,8 @@ public class ManageFiltersForm extends javax.swing.JFrame {
             String filterName = this.filtersJList.getSelectedValue();   // gets selected filter name
             Filter filter = filterStore.readByKey(filterName);  // gets filter from list
             
-            DeleteForm delForm = new DeleteForm(this,true);
+            ConfirmForm delForm = new ConfirmForm(this,true);
+            delForm.setLocationRelativeTo(this);  // sets dialog center to this form
             delForm.setMessage("Delete filter "+filter.getName()+ "?");
             delForm.setVisible(true);
             if(delForm.getFormResult()){    // checks if operation succeeded

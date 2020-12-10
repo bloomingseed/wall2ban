@@ -37,17 +37,19 @@ public class Fail2banPanel extends javax.swing.JPanel {
     /**
      * Parent frame of this panel.
      */
-    private Frame parent;
+    private final Frame parent;
     
     /**
      * Creates new form Fail2banPanelForm
+     * @param parent
+     * @param context
+     * @throws java.lang.Exception
      */
-    public Fail2banPanel(Fail2banContext context) throws Exception {
+    public Fail2banPanel(Frame parent) throws Exception {
         initComponents();
-        this.context = context;
+        this.parent = parent;
         
-        boolean activated = context.isActivated();  // gets fail2ban client status
-        handleStateChange(activated);   // handles current state
+        refresh();
     }
     
     
@@ -77,6 +79,7 @@ public class Fail2banPanel extends javax.swing.JPanel {
         activeJailsList = new javax.swing.JList<>();
         switchButton = new javax.swing.JButton();
         stateLabel = new javax.swing.JLabel();
+        refreshButton = new javax.swing.JButton();
 
         jLabel1.setText("Status:");
 
@@ -155,6 +158,13 @@ public class Fail2banPanel extends javax.swing.JPanel {
         stateLabel.setText("OFF");
         stateLabel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
+        refreshButton.setText("Refresh");
+        refreshButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                refreshButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -168,7 +178,7 @@ public class Fail2banPanel extends javax.swing.JPanel {
                         .addComponent(stateLabel)
                         .addGap(18, 18, 18)
                         .addComponent(switchButton)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
@@ -184,20 +194,23 @@ public class Fail2banPanel extends javax.swing.JPanel {
                                 .addComponent(manageFiltersButton)
                                 .addGap(18, 18, 18)
                                 .addComponent(manageActionsButton)
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addContainerGap())
                             .addGroup(layout.createSequentialGroup()
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(layout.createSequentialGroup()
                                         .addGap(0, 0, Short.MAX_VALUE)
-                                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 622, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(jScrollPane3))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(manualBanButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(unbanallButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(unbanButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addGap(1, 1, 1))))))
+                                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 622, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(131, 131, 131))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 603, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                            .addComponent(manualBanButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                            .addComponent(unbanallButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                            .addComponent(unbanButton, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(refreshButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 115, Short.MAX_VALUE))
+                                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -206,27 +219,28 @@ public class Fail2banPanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
                     .addComponent(switchButton)
-                    .addComponent(stateLabel))
+                    .addComponent(stateLabel)
+                    .addComponent(refreshButton))
                 .addGap(16, 16, 16)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(jLabel6))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 261, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 261, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(manualBanButton)
                         .addGap(18, 18, 18)
                         .addComponent(unbanButton)
                         .addGap(18, 18, 18)
-                        .addComponent(unbanallButton))
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 261, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 261, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(unbanallButton)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(manageActionsButton)
                     .addComponent(manageFiltersButton)
                     .addComponent(manageJailsButton))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(29, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -293,6 +307,7 @@ public class Fail2banPanel extends javax.swing.JPanel {
         String jailName = this.activeJailsList.getSelectedValue();  // gets jail name to get
         Jail jail = this.context.getJailStore().readByKey(jailName); // gets jail from list
         ManualBanDialog banDialog = new ManualBanDialog(parent,true);
+        banDialog.setLocationRelativeTo(this);  // sets dialog center to this form
         List<String> jailNames = new ArrayList<String>();
         for(Jail key : context.getJailStore().readActiveJails().keySet())
             jailNames.add(key.getName());   // adds jail name to list
@@ -322,6 +337,7 @@ public class Fail2banPanel extends javax.swing.JPanel {
     private void unbanButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_unbanButtonActionPerformed
         String ip = this.bannedIpsList.getSelectedValue();  // gets selected ip
         UnbanIPDialog unbanDialog = new UnbanIPDialog(parent,true);
+        unbanDialog.setLocationRelativeTo(this);  // sets dialog center to this form
         unbanDialog.setDisplayIP(ip);
         unbanDialog.setVisible(true);
         if(unbanDialog.getFormResult()){
@@ -343,6 +359,7 @@ public class Fail2banPanel extends javax.swing.JPanel {
         String jailName = this.activeJailsList.getSelectedValue();  // gets jail name to get
         Jail jail = this.context.getJailStore().readByKey(jailName); // gets jail from list
         UnbanAllDialog unbanAllDialog = new UnbanAllDialog(parent,true);
+        unbanAllDialog.setLocationRelativeTo(this);  // sets dialog center to this form
         unbanAllDialog.setDisplayJailName(jail.getName());
         unbanAllDialog.setVisible(true);    // shows dialog
         if(unbanAllDialog.getFormResult()){ // checks if user pressed primary button
@@ -382,6 +399,18 @@ public class Fail2banPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_switchButtonActionPerformed
 
+    private void refreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButtonActionPerformed
+        try{
+            refresh();
+        } catch(Exception err){
+            JOptionPane.showMessageDialog(parent, "Failed to refresh context");
+        }
+    }//GEN-LAST:event_refreshButtonActionPerformed
+    private void refresh() throws Exception{
+        context = new Fail2banContext();
+        boolean activated = context.isActivated();  // gets fail2ban client status
+        handleStateChange(activated);   // handles current state
+    }
     /**
      * @param args the command line arguments
      */
@@ -416,7 +445,7 @@ public class Fail2banPanel extends javax.swing.JPanel {
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 try{
                     Fail2banContext context = new Fail2banContext();
-                    Fail2banPanel panel = new Fail2banPanel(context);
+                    Fail2banPanel panel = new Fail2banPanel(null);
                     frame.setContentPane(panel);
                     frame.pack();
                     frame.setVisible(true);
@@ -444,6 +473,7 @@ public class Fail2banPanel extends javax.swing.JPanel {
     private javax.swing.JButton manageFiltersButton;
     private javax.swing.JButton manageJailsButton;
     private javax.swing.JButton manualBanButton;
+    private javax.swing.JButton refreshButton;
     private javax.swing.JLabel stateLabel;
     private javax.swing.JButton switchButton;
     private javax.swing.JButton unbanButton;

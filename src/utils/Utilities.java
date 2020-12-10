@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package wall2ban;
+package utils;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -39,4 +39,5 @@ public class Utilities {
             bwriter.close();
         }
     }
+          
 }

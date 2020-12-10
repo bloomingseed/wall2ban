@@ -47,7 +47,9 @@ public class Fail2banContext {
         String command = "fail2ban-client stop";
         if(bi.executeRoot(command)!=0)
             throw new Exception("Failed to start fail2ban-client");
-        jailStore.getAllActiveJails();  // updates active jails list
+        try{
+            jailStore.getAllActiveJails();  // empty active jails
+        }  catch(Exception err){}
     }
     
     

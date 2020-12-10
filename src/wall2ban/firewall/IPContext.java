@@ -6,6 +6,7 @@
 package wall2ban.firewall;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import wall2ban.BashInterpreter;
@@ -18,6 +19,7 @@ import wall2ban.BashInterpreter;
 public class IPContext {
     private ChainStore chainStore;
     private IPRuleStore ruleStore;
+    private BashInterpreter bashi;
     /**
      * Create the chains and rules from the underlaying iptables.
      * @throws IOException If communication with terminal failed.
@@ -28,6 +30,7 @@ public class IPContext {
     public IPContext() throws IOException, Exception {
         this.chainStore = new ChainStore();
         this.ruleStore = new IPRuleStore(this.chainStore);
+        bashi = new BashInterpreter();
     }
     /**
      * 
@@ -40,6 +43,28 @@ public class IPContext {
      */
     public IPRuleStore getRuleStore(){return this.ruleStore;}
     
+    
+    /**
+     * Deletes all chains created by user, that is chains except 
+     * 3 default ones: INPUT, OUTPUT and FORWARD.
+     */
+    public void resetIPTable() throws Exception{
+        String command = "iptables -F"; // creates flush command
+        if(bashi.executeRoot(command)!=0)
+            throw new Exception("Failed to flush rules");
+        List<Chain> chains = chainStore.readAll();
+        for(int i = 3; i<chains.size(); ++i){
+            Chain c = chains.get(i);    // gets current chain
+            command = "iptables -X "+c.getName();   // creates delete chain command
+            if(bashi.executeRoot(command)!=0)
+                throw new Exception("Failed to delete chain "+c.getName());
+            
+        }
+        chainStore = new ChainStore();  // reloads chain store
+        ruleStore=  new IPRuleStore(chainStore); // reloads rule store
+    
+    }
+    
     public static void main(String[] args){
         
         try {
@@ -49,8 +74,6 @@ public class IPContext {
             ctx.getRuleStore().create(r1);
             
             System.out.println("Created new rule: "+r1.toString());
-            
-            ctx.getChainStore().resetIPTable();
             
             
         } catch (Exception ex) {

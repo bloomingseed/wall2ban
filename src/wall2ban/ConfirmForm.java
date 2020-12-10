@@ -9,12 +9,12 @@ package wall2ban;
  *
  * @author Admin
  */
-public class DeleteForm extends javax.swing.JDialog {
+public class ConfirmForm extends javax.swing.JDialog {
 private boolean formResult;
     /**
      * Creates new form DeleteForm2
      */
-    public DeleteForm(java.awt.Frame parent, boolean modal) {
+    public ConfirmForm(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
     }
@@ -25,12 +25,8 @@ private boolean formResult;
     public void setMessage(String label){
         this.jLabel1.setText(label);
     }
-    /**
-     * Sets main button label.
-     * @param label 
-     */
-    public void setButtonName(String label){
-        this.jButton1.setText(label);
+    public void setButtonLabel(String label){
+        this.primaryButton.setText(label);
     }
     public boolean getFormResult(){return this.formResult;}
     /**
@@ -42,17 +38,17 @@ private boolean formResult;
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jButton1 = new javax.swing.JButton();
+        primaryButton = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
-        jButton1.setText("Delete");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        primaryButton.setText("Delete");
+        primaryButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                primaryButtonActionPerformed(evt);
             }
         });
 
@@ -88,7 +84,7 @@ private boolean formResult;
             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addGap(22, 22, 22)
-                .addComponent(jButton1)
+                .addComponent(primaryButton)
                 .addGap(29, 29, 29)
                 .addComponent(jButton2)
                 .addContainerGap(30, Short.MAX_VALUE))
@@ -100,24 +96,23 @@ private boolean formResult;
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton2)
-                    .addComponent(jButton1))
+                    .addComponent(primaryButton))
                 .addGap(0, 18, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
     
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-
-        this.formResult = true;
-        this.setVisible(false);
-    }//GEN-LAST:event_jButton1ActionPerformed
-
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
 
         this.formResult = false;
         this.setVisible(false);
     }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void primaryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_primaryButtonActionPerformed
+         this.formResult = true;
+        this.setVisible(false);
+    }//GEN-LAST:event_primaryButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -136,21 +131,23 @@ private boolean formResult;
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(DeleteForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ConfirmForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(DeleteForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ConfirmForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(DeleteForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ConfirmForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(DeleteForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ConfirmForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
+        //</editor-fold>
         //</editor-fold>
         //</editor-fold>
 
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                DeleteForm dialog = new DeleteForm(new javax.swing.JFrame(), true);
+                ConfirmForm dialog = new ConfirmForm(new javax.swing.JFrame(), true);
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {
@@ -163,9 +160,9 @@ private boolean formResult;
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JButton primaryButton;
     // End of variables declaration//GEN-END:variables
 }

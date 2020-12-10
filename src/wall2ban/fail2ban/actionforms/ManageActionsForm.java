@@ -10,7 +10,7 @@ import java.util.Comparator;
 import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
-import wall2ban.DeleteForm;
+import wall2ban.ConfirmForm;
 import wall2ban.fail2ban.Action;
 import wall2ban.fail2ban.ActionStore;
 
@@ -177,6 +177,7 @@ public class ManageActionsForm extends javax.swing.JFrame {
             String actionName = this.actionsJList.getSelectedValue();   // gets selected action name
             Action action = actionStore.readByKey(actionName);  // gets action from list
             ConfigureActionDialog form = new ConfigureActionDialog(this,true,action); // creates new config form to edit action
+            form.setLocationRelativeTo(this);  // sets dialog center to this form
             form.setVisible(true);
             if(form.getFormResult()){   // checks if operation succeeded
                 Action newAction = form.getAction(); // gets updated action
@@ -194,6 +195,7 @@ public class ManageActionsForm extends javax.swing.JFrame {
     private void createButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createButtonActionPerformed
         if(this.actionsJList.getSelectedIndex()>=0){    // checks if user clicked a valid item
             ConfigureActionDialog form = new ConfigureActionDialog(this,true,null); // creates new config form to edit action
+            form.setLocationRelativeTo(this);  // sets dialog center to this form
             form.setVisible(true);
             if(form.getFormResult()){   // checks if operation succeeded
                 Action newAction = form.getAction(); // gets new action
@@ -213,7 +215,8 @@ public class ManageActionsForm extends javax.swing.JFrame {
             String actionName = this.actionsJList.getSelectedValue();   // gets selected action name
             Action action = actionStore.readByKey(actionName);  // gets action from list
             
-            DeleteForm delForm = new DeleteForm(this,true);
+            ConfirmForm delForm = new ConfirmForm(this,true);
+            delForm.setLocationRelativeTo(this);  // sets dialog center to this formw
             delForm.setMessage("Delete action "+action.getName());
             delForm.setVisible(true);
             if(delForm.getFormResult()){    // checks if operation succeeded

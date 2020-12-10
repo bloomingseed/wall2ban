@@ -5,7 +5,7 @@
  */
 package wall2ban;
 
-import static wall2ban.Utilities.Utils;
+import static utils.Utilities.Utils;
 
 import java.io.FileNotFoundException;
 import java.util.List;

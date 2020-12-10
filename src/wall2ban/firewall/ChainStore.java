@@ -80,7 +80,7 @@ public class ChainStore implements IStore<Chain,String>{
         String createChainCommand = String.format("iptables -N %s",entity.getName());
         int code = bashi.executeRoot(createChainCommand);
         if(code!=0)
-            throw new Exception("Failed to create new chain "+entity.getName());
+            throw new Exception(bashi.getErrors());
         this.chains.add(entity);    // add new chain to RAM's chains collection
     }
 
@@ -108,7 +108,7 @@ public class ChainStore implements IStore<Chain,String>{
         String command = String.format("iptables --rename-chain %s %s",chain.getName(),newName);
         int code = bashi.executeRoot(command);
         if(code!=0)    // check if the response is a failed one
-            throw new Exception("Failed to rename chain "+chain.getName()+" to "+newName); // throw
+            throw new Exception(bashi.getErrors()); // throw
         chain.setName(newName);
     }
 
@@ -120,25 +120,14 @@ public class ChainStore implements IStore<Chain,String>{
             command = String.format("iptables -D %s %d",entity.getName(),i);
             int exitCode = bashi.executeRoot(command);   // delete rule number. i
             if(exitCode!=0)
-                throw new Exception("Failed to delete "+entity.getName()+"'s rule number. "+i);
+                throw new Exception("Failed to delete "+entity.getName()+"'s rule number. "+i+
+                        "\nError:"+bashi.getErrors());
         }
         command = String.format("iptables -X %s",entity.getName());
         int code = bashi.executeRoot(command); // terminal response for deleting chain command
         if(code!=0)    // check if the response is a failed one
-            throw new Exception("Failed to delete chain "+entity.getName()); // throw
+            throw new Exception("Failed to delete chain "+entity.getName()+"\nError:"+bashi.getErrors()); // throw
         this.chains.remove(entity); // remove this chain from collection
-    }
-    /**
-     * Deletes all chains created by user, that is chains except 
-     * 3 default ones: INPUT, OUTPUT and FORWARD.
-     */
-    public void resetIPTable() throws Exception{
-
-        for(int i = 3; i<this.chains.size();++i){
-            Chain chain = this.chains.get(i);   // refers to the chain to delete
-            delete(chain);
-        }
-    
     }
     
     public static void main(String[] args){

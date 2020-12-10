@@ -130,10 +130,10 @@ public class IPRuleStore implements IStore<IPRule,Integer>{
             throw new Exception("Failed to create rule with no belonging chain: "+entity.toString());
         
         String ruleSpecs = entity.toString();   // retrieves the specifications of the rule
-        String command = String.format("iptables -A %s %s",entity.getOwner().getName(),ruleSpecs);
+        String command = String.format("iptables -I %s %s",entity.getOwner().getName(),ruleSpecs);
         int code = bashi.executeRoot(command);
         if(code!=0)    // check if the response is a failed one
-            throw new Exception("Failed to create rule "+ruleSpecs); // throw
+            throw new Exception(bashi.getErrors()); // throw
         this.ruleList.add(entity);     
         
     }
@@ -151,33 +151,40 @@ public class IPRuleStore implements IStore<IPRule,Integer>{
     
     /**
      * Updates the ip rule at the specified {@code ruleIndex} in the rule's chain.
-     * @param ruleIndex
-     * @param entity 
+     * @param chain Owning chain.
+     * @param oldRule old rule
+     * @param entity new rule
      */
-    public void updateIndex(int ruleIndex, IPRule entity) throws Exception{
+    public void updateIndex(IPRule oldRule, IPRule entity) throws Exception{
         String ruleSpecs = entity.toString();   // retrieves the specifications of the rule
+        Chain chain = oldRule.getOwner();   // gets owning chain
+        int index = chain.getRules().indexOf(oldRule);  // gets index of old rule in chain
         // specifies shell command to execute
-        String command = String.format("iptables -R %s %d %s",entity.getOwner().getName(),ruleIndex,ruleSpecs);   
+        String command = String.format("iptables -R %s %d %s",chain.getName(),index+1,ruleSpecs);   
         
         if(bashi.executeRoot(command)!=0)
-            throw new Exception("Failed to update rule #"+ruleIndex+" to "+ruleSpecs);
-        this.ruleList.set(ruleIndex, entity);   // replaces the rule number. ruleIndex with entity
+            throw new Exception(bashi.getErrors());
+        chain.getRules().remove(oldRule);   // removes old rule from chain
+        oldRule.setOwner(null);     // removes old rule from chain
+        entity.setOwner(chain);     // sets new rule owner as the chain
         
+        int ruleIndex = ruleList.indexOf(oldRule);  // gets index of old rule in rules list
+        ruleList.set(ruleIndex, entity);    // replaces old rule with new rule in rules list
     }
 
     @Override
     public void delete(IPRule entity) throws Exception {
-        int ruleIndex = this.ruleList.indexOf(entity);  // gets the index of entity in the rules list
+        Chain owner = entity.getOwner();    // gets owning chain
+        int ruleIndex = owner.getRules().indexOf(entity);  // gets the index of entity in the rules list
         ruleIndex = ruleIndex+1;    // uses 1-indexing
         String ruleSpecs = entity.toString();   // gets the rule specifications
-        if(ruleIndex <1)
-            throw new Exception("Failed to delete. Rule does not exist: "+ruleSpecs);
         // specifies shell command to execute
         String command = String.format("iptables -D %s %d",entity.getOwner().getName(),ruleIndex);   
         
-        if(bashi.executeRoot(command)!=0)
+        if(bashi.executeRoot(command)!=0)   // executes command and checks if failed
             throw new Exception("Failed to update rule #"+ruleIndex+" to "+ruleSpecs);
-        this.ruleList.set(ruleIndex, entity);   // replaces the rule number. ruleIndex with entity
+        owner.getRules().remove(entity);    // removes rule from chain
+        entity.setOwner(null);  // removes rule from chain
         
     }
     

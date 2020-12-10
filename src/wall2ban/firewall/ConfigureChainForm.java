@@ -5,18 +5,30 @@
  */
 package wall2ban.firewall;
 
+import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
 
+/**
+ * Common form for both creating and renaming chain.
+ * @author xceeded
+ */
     public class ConfigureChainForm extends javax.swing.JDialog {
     private boolean formResult;
+    private String chainName;
     /**
      * Creates new form RenameForm2
      */
-    public ConfigureChainForm(java.awt.Frame parent, boolean modal) {
+    public ConfigureChainForm(java.awt.Frame parent, boolean modal, Chain chain) {
         super(parent, modal);
         initComponents();
-//        JOptionPane.showIn
+        String buttonLabel= chain==null?"Create":"Rename";    // initializes proper label for button
+        String chainName = chain==null?"":chain.getName(); // initializes proper chain name
+        chainNameTextField.setText(chainName);  // sets proper value for name text field
+        primaryButton.setText(buttonLabel); // sets label for primary button
     }
+    
+    public boolean getFormResult(){return formResult;}
+    public String getChainName(){return chainName;}
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -29,10 +41,10 @@ import javax.swing.JOptionPane;
 
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
+        chainNameTextField = new javax.swing.JTextField();
         jPanel2 = new javax.swing.JPanel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        primaryButton = new javax.swing.JButton();
+        cancelButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -40,7 +52,7 @@ import javax.swing.JOptionPane;
         jLabel1.setText("Chain name:");
         jLabel1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 
-        jTextField1.setText("jTextField1");
+        chainNameTextField.setText("jTextField1");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -49,7 +61,7 @@ import javax.swing.JOptionPane;
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jTextField1)
+                .addComponent(chainNameTextField)
                 .addGap(5, 5, 5))
         );
         jPanel1Layout.setVerticalGroup(
@@ -57,22 +69,22 @@ import javax.swing.JOptionPane;
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(22, 22, 22)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(chainNameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(24, Short.MAX_VALUE))
         );
 
-        jButton1.setText("foo text");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        primaryButton.setText("foo text");
+        primaryButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                primaryButtonActionPerformed(evt);
             }
         });
 
-        jButton2.setText("Cancel");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        cancelButton.setText("Cancel");
+        cancelButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                cancelButtonActionPerformed(evt);
             }
         });
 
@@ -82,9 +94,9 @@ import javax.swing.JOptionPane;
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addContainerGap(49, Short.MAX_VALUE)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(primaryButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(38, 38, 38)
-                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(cancelButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(85, 85, 85))
         );
         jPanel2Layout.setVerticalGroup(
@@ -92,8 +104,8 @@ import javax.swing.JOptionPane;
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2))
+                    .addComponent(primaryButton)
+                    .addComponent(cancelButton))
                 .addContainerGap())
         );
 
@@ -119,15 +131,21 @@ import javax.swing.JOptionPane;
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        this.formResult = true;
-        this.setVisible(false);
-    }//GEN-LAST:event_jButton1ActionPerformed
+    private void primaryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_primaryButtonActionPerformed
+        String name = chainNameTextField.getText(); // gets chosen name
+        if(Pattern.matches("[\\w-_]+",name)){   // checks if name is valid
+            this.chainName = name;  // sets chain name to chosen name
+            formResult = true;  
+            setVisible(false);  // hides form
+        } else{
+            JOptionPane.showMessageDialog(this, "Invalid chain name");  // shows error dialog
+        }
+    }//GEN-LAST:event_primaryButtonActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
         this.formResult = false;
-        this.setVisible(false);
-    }//GEN-LAST:event_jButton2ActionPerformed
+        this.setVisible(false); // hides form
+    }//GEN-LAST:event_cancelButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -162,7 +180,7 @@ import javax.swing.JOptionPane;
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                ConfigureChainForm dialog = new ConfigureChainForm(new javax.swing.JFrame(), true);
+                ConfigureChainForm dialog = new ConfigureChainForm(new javax.swing.JFrame(), true,null);
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {
@@ -177,11 +195,11 @@ import javax.swing.JOptionPane;
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
+    private javax.swing.JButton cancelButton;
+    private javax.swing.JTextField chainNameTextField;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JTextField jTextField1;
+    private javax.swing.JButton primaryButton;
     // End of variables declaration//GEN-END:variables
 }
