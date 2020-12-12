@@ -494,6 +494,7 @@ public class FirewallPanel extends javax.swing.JPanel {
                     FirewallPanel panel = new FirewallPanel(frame);
                     frame.setContentPane(panel);
                     frame.pack();
+                    frame.setLocationRelativeTo(null);
                     frame.setVisible(true);
                 } catch(Exception err){
                     err.printStackTrace();

@@ -266,7 +266,9 @@ public class ManageFiltersForm extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 FilterStore fstore = new FilterStore();
-                new ManageFiltersForm(fstore).setVisible(true);
+                ManageFiltersForm form = new ManageFiltersForm(fstore);
+                form.setLocationRelativeTo(null);
+                form.setVisible(true);
             }
         });
     }

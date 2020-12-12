@@ -443,6 +443,7 @@ public class ManageJailForm extends javax.swing.JFrame {
                             System.exit(0);
                         }
                     });
+                    dialog.setLocationRelativeTo(null);
                     dialog.setVisible(true);
                 } catch (Exception ex) {
                     Logger.getLogger(ManageJailForm.class.getName()).log(Level.SEVERE, null, ex);

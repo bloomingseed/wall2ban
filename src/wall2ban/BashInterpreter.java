@@ -93,6 +93,7 @@ public class BashInterpreter {
      */
     private void promptRootPassword() throws Exception{
         PromptPasswordDialog form = new PromptPasswordDialog(null,true);   // creates form
+        form.setLocationRelativeTo(null);   // sets form to center screen
         boolean isValid = false;    // checks if password is valid
         try{
             do{

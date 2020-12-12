@@ -271,7 +271,9 @@ public class ManageActionsForm extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 ActionStore astore = new ActionStore();
-                new ManageActionsForm(astore).setVisible(true);
+                ManageActionsForm form = new ManageActionsForm(astore);
+                form.setLocationRelativeTo(null);
+                form.setVisible(true);
             }
         });
     }

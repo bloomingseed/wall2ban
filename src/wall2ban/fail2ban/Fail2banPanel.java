@@ -293,12 +293,14 @@ public class Fail2banPanel extends javax.swing.JPanel {
     
     private void manageFiltersButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_manageFiltersButtonActionPerformed
         ManageFiltersForm manageFilter = new ManageFiltersForm(this.context.getFilterStore());
+        manageFilter.setLocationRelativeTo(null);   // sets form location to center screen
         manageFilter.setVisible(true);
     }//GEN-LAST:event_manageFiltersButtonActionPerformed
 
     private void manageJailsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_manageJailsButtonActionPerformed
-        ManageJailForm managejail = new ManageJailForm(this.context.getJailStore());
-        managejail.setVisible(true);
+        ManageJailForm manageJail = new ManageJailForm(this.context.getJailStore());
+        manageJail.setLocationRelativeTo(null);   // sets form location to center screen
+        manageJail.setVisible(true);
     }//GEN-LAST:event_manageJailsButtonActionPerformed
 
     private void manualBanButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_manualBanButtonActionPerformed
@@ -307,12 +309,12 @@ public class Fail2banPanel extends javax.swing.JPanel {
         String jailName = this.activeJailsList.getSelectedValue();  // gets jail name to get
         Jail jail = this.context.getJailStore().readByKey(jailName); // gets jail from list
         ManualBanDialog banDialog = new ManualBanDialog(parent,true);
-        banDialog.setLocationRelativeTo(this);  // sets dialog center to this form
         List<String> jailNames = new ArrayList<String>();
         for(Jail key : context.getJailStore().readActiveJails().keySet())
             jailNames.add(key.getName());   // adds jail name to list
         banDialog.setJailsComboBoxItems(jailNames); // sets jail names to dialog combo box
         banDialog.setSelectedJail(jailName); // sets selected jail as combobox initial value
+        banDialog.setLocationRelativeTo(this);  // sets dialog center to this form
         banDialog.setVisible(true); // shows dialog
         
         if(banDialog.getFormResult()==true){    // checks if result is true
@@ -331,6 +333,7 @@ public class Fail2banPanel extends javax.swing.JPanel {
 
     private void manageActionsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_manageActionsButtonActionPerformed
         ManageActionsForm manageAction = new ManageActionsForm(context.getActionStore());
+        manageAction.setLocationRelativeTo(this);  // sets dialog center to this form
         manageAction.setVisible(true);
     }//GEN-LAST:event_manageActionsButtonActionPerformed
 
@@ -448,6 +451,7 @@ public class Fail2banPanel extends javax.swing.JPanel {
                     Fail2banPanel panel = new Fail2banPanel(null);
                     frame.setContentPane(panel);
                     frame.pack();
+                    frame.setLocationRelativeTo(null);
                     frame.setVisible(true);
                 } catch(Exception err){
                     err.printStackTrace();

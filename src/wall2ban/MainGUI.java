@@ -51,6 +51,7 @@ public class MainGUI extends JFrame{
         try{
             BashInterpreter bi = BashInterpreter.getSingleton();
             MainGUI gui = new MainGUI();
+            gui.setLocationRelativeTo(null);    // sets form location to center screen
             gui.setVisible(true);
         } catch(Exception err){
             err.printStackTrace();
