@@ -99,6 +99,12 @@ private String jailName;
         jLabel2.setText("Jail:");
         jLabel2.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 
+        jailsComboBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jailsComboBoxItemStateChanged(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -174,6 +180,10 @@ private String jailName;
         jailName = null;
         this.setVisible(false);
     }//GEN-LAST:event_cancelButtonActionPerformed
+
+    private void jailsComboBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jailsComboBoxItemStateChanged
+        this.jailName = (String)evt.getItem();
+    }//GEN-LAST:event_jailsComboBoxItemStateChanged
 
     /**
      * @param args the command line arguments
