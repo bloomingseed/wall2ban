@@ -30,7 +30,7 @@ public class IPContext {
     public IPContext() throws IOException, Exception {
         this.chainStore = new ChainStore();
         this.ruleStore = new IPRuleStore(this.chainStore);
-        bashi = new BashInterpreter();
+        bashi = BashInterpreter.getSingleton();
     }
     /**
      * 

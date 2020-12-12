@@ -49,6 +49,7 @@ public class MainGUI extends JFrame{
     
     public static void main(String[] args){
         try{
+            BashInterpreter bi = BashInterpreter.getSingleton();
             MainGUI gui = new MainGUI();
             gui.setVisible(true);
         } catch(Exception err){

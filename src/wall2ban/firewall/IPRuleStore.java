@@ -49,7 +49,7 @@ public class IPRuleStore implements IStore<IPRule,Integer>{
      */
     public IPRuleStore(ChainStore chainStore) throws IOException, Exception{
         this.chainStore = chainStore;
-        bashi = new BashInterpreter();
+        bashi = BashInterpreter.getSingleton();
         readAllFromTerminal();  // initializes new rule list
     }
     /**

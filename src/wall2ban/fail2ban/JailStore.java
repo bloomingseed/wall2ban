@@ -70,7 +70,7 @@ public class JailStore implements IStore<Jail,Object>{
      * @see #cleanUp()
      */
     public JailStore() throws IOException, Exception {
-        bi = new BashInterpreter();
+        bi = BashInterpreter.getSingleton();
         getAllJails();  
         try{
             getAllActiveJails();
@@ -89,38 +89,50 @@ public class JailStore implements IStore<Jail,Object>{
     private void getAllJails() {
         jails = new ArrayList<Jail>();  // creates new empty jails list
         
-        List<File> files = new LinkedList<File>();  // creates empty list of files to parse
-        File jcFile = null; // declares the file reference
-        jcFile = Paths.get(FAIL2BAN_ROOT+"/jail.conf").toFile();    // gets jail.conf file
-        if(jcFile.exists()) // checks if jail.conf file exists
-            files.add(jcFile);   // adds to files to read
-        jcFile = Paths.get(FAIL2BAN_ROOT+"/jail.local").toFile();   // gets jail.local file
-        if(jcFile.exists())   // checks if local config file exists
-            files.add(jcFile); // adds local config file to files list
+        String[] fileNames = new String[]{"jail.conf","jail.local"};
+        for(String fileName : fileNames){
+            File jailFile = Paths.get(FAIL2BAN_ROOT,fileName).toFile(); // creates file to such name
+            if(jailFile.exists())   // checks if file exists
+                try{
+                    parseJailConfig(jailFile);  // parses jail file and add to jail list
+                } catch(Exception err){ // checks if some error happened
+                    System.out.println("Failed to parse "+fileName+" file. Skipping this file");
+                    err.printStackTrace();
+                }
+        }
                 
         File folder = Paths.get(JAILS_FOLDER).toFile();   // gets folder containing custom jails
-        FilenameFilter flt = new FilenameFilter(){
+        FilenameFilter flt = new FilenameFilter(){  // creates file filter to get only .conf files
             public boolean accept(File parent, String name){
                 int i = name.lastIndexOf(".");
                 String ext = i<0? "noExt": name.substring(i); // gets the file extension
-                return (ext.equals(".conf")||ext.equals(".local"));
+                return (ext.equals(".conf"));
             }
-        };  // creates file filter to get only .conf and .local files
+        };  
         File[] customFiles = folder.listFiles(flt); // gets such file from folder
         
-        for(File file : files)
+        for(File file : customFiles)    // loops through each .conf file
             try{
-                parseJailConfig(file); // parses jail.conf and jail.local
+                parseJailConfig(file); // parses config files
             } catch(Exception err){
                 System.out.println("Failed when parsing jail at "+file.getPath()+". Skipping this jail..");
             }
-        for(File file : customFiles)
+        
+        flt = new FilenameFilter(){     // creates file filter to get only .local files
+            public boolean accept(File parent, String name){
+                int i = name.lastIndexOf(".");
+                String ext = i<0? "noExt": name.substring(i); // gets the file extension
+                return (ext.equals(".local"));
+            }
+        };  
+        customFiles = folder.listFiles(flt); // gets such file from folder
+        
+        for(File file : customFiles)    // loops through each .local file
             try{
-                parseJailConfig(file); // parses each custom jail in jail.d
-            }  catch(Exception err){
+                parseJailConfig(file); // parses local config files
+            } catch(Exception err){
                 System.out.println("Failed when parsing jail at "+file.getPath()+". Skipping this jail..");
             }
-        
     }
     /**
      * Parses a jail from the {@code configFile} then either add new jail
@@ -260,7 +272,7 @@ public class JailStore implements IStore<Jail,Object>{
     private void getPermission() throws Exception{
         UnixSystem sys = new UnixSystem();
         String cuser = sys.getUsername();
-        BashInterpreter bi = new BashInterpreter();
+        bi = BashInterpreter.getSingleton();
         String setOwnerCommand = String.format("chown %s -R %s",cuser,FAIL2BAN_ROOT);
         if(bi.executeRoot(setOwnerCommand)!=0)
             throw new Exception("Failed to set owner permission");

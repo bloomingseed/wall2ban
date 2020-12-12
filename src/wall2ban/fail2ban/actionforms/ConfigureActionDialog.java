@@ -48,8 +48,9 @@ private Action action;
             String configString = configureResultTextArea.getText();   // gets config string from text area
             if(!configString.isBlank()){ // checks if not blank
                 try {
-
+                    String name = action.getName();
                     action = Action.parseAction(configString);  // spawns new action according to config string
+                    action.setName(name);
                     configureResultTextArea.setText(action.toConfigString()); // sets new config string for config text area
                     updateProps();  // update form properties
                 } catch (Exception ex) {
@@ -339,14 +340,14 @@ private Action action;
     private void startTextAreaFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_startTextAreaFocusLost
         String content = this.startTextArea.getText();
         if(!content.isBlank()){
-            String key = "startaction";
+            String key = "actionstart";
             updateField(key,content);
         }
     }//GEN-LAST:event_startTextAreaFocusLost
 
     private void stopTextAreaFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_stopTextAreaFocusLost
         String content = this.stopTextArea.getText();
-        String key = "stopaction";
+        String key = "actionstop";
         if(!content.isBlank()){
             updateField(key,content);
         }
@@ -354,7 +355,7 @@ private Action action;
 
     private void checkTextAreaFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_checkTextAreaFocusLost
         String content = this.checkTextArea.getText();
-        String key = "checkaction";
+        String key = "actioncheck";
         if(!content.isBlank()){
             updateField(key,content);
         }
@@ -362,7 +363,7 @@ private Action action;
 
     private void banTextAreaFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_banTextAreaFocusLost
         String content = this.banTextArea.getText();
-        String key = "banaction";
+        String key = "actionban";
         if(!content.isBlank()){
             updateField(key,content);
         }
@@ -371,7 +372,7 @@ private Action action;
 
     private void unbanTextAreaFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_unbanTextAreaFocusLost
         String content = this.unbanTextArea.getText();
-        String key = "unbanaction";
+        String key = "actionunban";
         if(!content.isBlank()){
             updateField(key,content);
         }

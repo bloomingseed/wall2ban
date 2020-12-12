@@ -5,17 +5,32 @@
  */
 package wall2ban;
 
+import java.awt.Container;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 /**
  * A mediator helps execute shell command and retrieve response as String and exit code.
  * @author xceeded
  */
 public class BashInterpreter {
+    /**
+     * Singleton element.
+     */
+    private static BashInterpreter singleton;
+    
     private ProcessBuilder pb;
     /**
      * Default location of terminal on Linux-based systems.
@@ -45,14 +60,64 @@ public class BashInterpreter {
      * </ul>
      */
     private String errors;
+    private BashInterpreter(){}
     /**
-     * Basically initializes the process builder to start bash terminal
+     * Prepares terminal and get root password from user.
+     * @throws Exception If user refused to enter root password.
      */
-    public BashInterpreter(){
+    private void init() throws Exception{
         pb = new ProcessBuilder();
         // commands to spawn bash terminal; last element is shell command
         commands= new String[]{BASH_LOCATION,"-c",""};
+        // reads password from user
+        promptRootPassword();
     }
+    
+    /**
+     * 
+     * @return Initialized instance of class BashInterpreter.
+     * @throws Exception If user refused to enter root password.
+     */
+    public static BashInterpreter getSingleton() throws Exception{
+        if(singleton==null){
+            singleton = new BashInterpreter();
+            singleton.init();
+        }
+        return singleton;
+    }
+    
+    
+    /**
+     * Shows form for user to enter root password.
+     * @throws Exception If user refused to enter password.
+     */
+    private void promptRootPassword() throws Exception{
+        PromptPasswordDialog form = new PromptPasswordDialog(null,true);   // creates form
+        boolean isValid = false;    // checks if password is valid
+        try{
+            do{
+                form.setVisible(true);  // shows form
+                if(form.getFormResult()){   // checks if chosen to proceed
+                    BashInterpreter.rootPass = form.getPassword();  // gets password
+                    //test password
+                    try{
+                        if(executeRoot("iptables -S")==0)
+                            isValid = true;
+                        else{
+                            JOptionPane.showMessageDialog(null, "Password incorrect.");
+                        }
+                    } catch(IOException | InterruptedException err){ // checks unusual error happended  
+                        JOptionPane.showMessageDialog(null, err.getMessage());
+                    }
+                } else  // checks if user chose to cancel
+                    throw new Exception("Canceled to start up"); 
+            } while(!isValid);
+        } catch(Exception err){
+            throw err;
+        }
+    }
+    
+    
     /**
      * Retrieves only the shell command that is executed against terminal
      * @return {@code String} - Shell command to be executed.
@@ -93,12 +158,12 @@ public class BashInterpreter {
      * @throws IOException Communication with the terminal failed.
      * @throws Exception If {@code command} wasn't set properly.
      */
-    public int execute() throws IOException, Exception{
+    public int execute() throws IOException, InterruptedException{
         this.response = null;   // reset response to null and begin new session
         this.errors = null;     // reset errors to null and begin new session
         // if `command` is invalid
         if(commands[2]==null || commands[2].isEmpty() || commands[2].isBlank()){
-            throw new Exception("Command not specified");
+            throw new java.lang.IllegalStateException("Command not specified");
         }
         
         Process p = pb.start(); // start execution
@@ -142,30 +207,28 @@ public class BashInterpreter {
         return p.exitValue();
     }
     
-    /**
-     * DEVELOPMENT: store the root password to call privileged commands.
-     * */
-    private static String ROOT_PASS="mynewbnscharactersnameislukie";
+    private static String rootPass;
     /**
      * DEVELOPMENT ONLY: Execute specified shell command as root
      * @param cmd Shell command as {@code String}
      * @return Terminal response as {@code String}
      * @throws IOException If communication with terminal fails
+     * @throws java.lang.InterruptedException
      */
-    public int executeRoot(String cmd) throws Exception{
-        setCommand("echo "+ROOT_PASS+" | sudo -S "+cmd);
+    public int executeRoot(String cmd) throws IOException, InterruptedException{
+        setCommand("echo "+rootPass+" | sudo -S "+cmd);
         return execute(); 
     }
     
     
     public static void main(String[] args){
         try {
-            test2();
+            test3();
         } catch (Exception ex) {
             Logger.getLogger(BashInterpreter.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    public static void test1(){
+    private static void test1(){
         BashInterpreter bi = new BashInterpreter();
         bi.setCommand("cal");
         try{
@@ -176,7 +239,7 @@ public class BashInterpreter {
             err.printStackTrace();
         }
     }
-    public static void test2() throws Exception{
+    private static void test2() throws Exception{
         
         BashInterpreter bi = new BashInterpreter();
         bi.setCommand("iptables -L");
@@ -185,6 +248,22 @@ public class BashInterpreter {
         System.out.println("Errors: \n"+bi.getErrors());
         
     }
-    
+    private static void test3() throws Exception{
+        BashInterpreter bashi = BashInterpreter.getSingleton();
+        try{
+            doWork(bashi);
+        } catch(Exception err){
+            JOptionPane.showMessageDialog(null, err.getMessage());
+        }
+    }
+    private static void doWork(BashInterpreter bashi) throws Exception{
+        String command = "iptables -S";
+        if(bashi.executeRoot(command)!=0){
+            JOptionPane.showMessageDialog(null, bashi.getErrors());
+            return;
+        }
+        String result = bashi.getResponse();
+        JOptionPane.showMessageDialog(null, result);
+    }
     
 }

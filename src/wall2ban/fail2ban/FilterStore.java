@@ -91,15 +91,34 @@ public class FilterStore implements IStore<Filter,String>{
         filters = new ArrayList<Filter>(); // creates new empty filters list
         
         File folder = Paths.get(FILTERS_FOLDER).toFile();   // gets folder containing all filters
-        FilenameFilter nameflt = new FilenameFilter(){
+        FilenameFilter nameflt = new FilenameFilter(){  // filters only .conf files
             @Override
             public boolean accept(File parent, String name){
                 int i = name.lastIndexOf(".");
                 String ext = i<0? "noExt" :name.substring(i); // retrieves the file extension
-                return (i<0 || ext.equals(".conf")||ext.equals(".local"));
+                return (i<0 || ext.equals(".conf"));
             }
-        };  // filters only .conf and .local files
+        };  
         File[] paths = folder.listFiles(nameflt);   // gets all filter config file
+        for(File filtp : paths){    // loops through each file
+            Path path = filtp.toPath(); // gest file path
+            try{
+                Filter filter = Filter.parseFilter(path);   // parses a new filter
+                filters.add(filter);    // adds filter to list
+            } catch(IOException err){
+                System.out.println("Failed when parsing filter at "+path.toString()+". Skipping this filter..");
+            }
+        }  
+        
+        nameflt = new FilenameFilter(){  // filters only .local files
+            @Override
+            public boolean accept(File parent, String name){
+                int i = name.lastIndexOf(".");
+                String ext = i<0? "noExt" :name.substring(i); // retrieves the file extension
+                return (i<0 || ext.equals(".local"));
+            }
+        };  
+        paths = folder.listFiles(nameflt);   // gets all filter config file
         for(File filtp : paths){    // loops through each file
             Path path = filtp.toPath(); // gest file path
             try{
@@ -113,6 +132,7 @@ public class FilterStore implements IStore<Filter,String>{
                 System.out.println("Failed when parsing filter at "+path.toString()+". Skipping this filter..");
             }
         }  
+        
     }
     private void saveFilter(Filter filter) throws IOException{
         File configFile = Paths.get(FILTERS_FOLDER+String.format("/%s.local",filter.getName())).toFile();   // gets file to current filter name

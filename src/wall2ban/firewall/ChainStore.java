@@ -28,7 +28,7 @@ public class ChainStore implements IStore<Chain,String>{
      * @throws Exception 
      */
     public ChainStore() throws Exception{
-        bashi = new BashInterpreter();
+        bashi = BashInterpreter.getSingleton();
        initializeChainsList();
        readAllFromTerminal();
     }

@@ -20,7 +20,7 @@ public class Fail2banContext {
     
     public Fail2banContext() throws Exception{
         reloadContext();
-        bi = new BashInterpreter();
+        bi = BashInterpreter.getSingleton();
     }
     
     public ActionStore getActionStore(){return actionStore;}

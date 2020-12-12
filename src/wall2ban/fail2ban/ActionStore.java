@@ -91,15 +91,36 @@ public class ActionStore implements IStore<Action,String>{
         actions = new ArrayList<Action>(); // creates new empty actions list
         
         File folder = Paths.get(ACTIONS_FOLDER).toFile();   // gets folder containing all actions
+        // filters only .conf files
         FilenameFilter nameflt = new FilenameFilter(){
             @Override
             public boolean accept(File parent, String name){
                 int i = name.lastIndexOf(".");
                 String ext = i<0? "noExt" :name.substring(i); // retrieves the file extension
-                return (i<0 || ext.equals(".conf")||ext.equals(".local"));
+                return (i<0 || ext.equals(".conf"));
             }
-        };  // filters only .conf and .local files
+        };  
         File[] paths = folder.listFiles(nameflt);   // gets all action config file
+        for(File filtp : paths){    // loops through each file
+            Path path = filtp.toPath(); // gest file path
+            try{
+                Action action = Action.parseAction(path);   // parses a new action
+                actions.add(action);    // adds action to list
+            } catch(Exception err){
+                System.out.println("Failed when parsing action at "+path.toString()+". Skipping this action..");
+            }
+        } 
+        
+        // filters only .local files
+        nameflt = new FilenameFilter(){
+            @Override
+            public boolean accept(File parent, String name){
+                int i = name.lastIndexOf(".");
+                String ext = i<0? "noExt" :name.substring(i); // retrieves the file extension
+                return (i<0 || ext.equals(".local"));
+            }
+        }; 
+        paths = folder.listFiles(nameflt);   // gets all action local file
         for(File filtp : paths){    // loops through each file
             Path path = filtp.toPath(); // gest file path
             try{
@@ -112,7 +133,8 @@ public class ActionStore implements IStore<Action,String>{
             } catch(Exception err){
                 System.out.println("Failed when parsing action at "+path.toString()+". Skipping this action..");
             }
-        }  
+        } 
+        
     }
     private void saveAction(Action action) throws IOException{
         File configFile = Paths.get(ACTIONS_FOLDER+String.format("/%s.local",action.getName())).toFile();   // gets file to current action name
@@ -131,7 +153,7 @@ public class ActionStore implements IStore<Action,String>{
     
     public static void main(String[] args) throws IOException, Exception{
         
-        test2();
+        test3();
         System.out.println("Test completed");
     }
     
@@ -159,5 +181,10 @@ public class ActionStore implements IStore<Action,String>{
         Path p = Paths.get("/etc/fail2ban/action.d/dshield.conf");
         Action act= Action.parseAction(p);
         act.toConfigString();
+    }
+    public static void test3(){
+        
+        ActionStore store=  new ActionStore();
+        Action syn = store.readByKey("syn-flood");
     }
 }
