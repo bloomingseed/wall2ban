@@ -12,6 +12,22 @@ overriding method: append
 overriding method: append
 
 ==
+Required fields
+meaning its value must not be blank and must be valid
+==
+- jail:
+-- enabled
+-- *literally any fields
+
+- filter:
+-- failregex
+
+- action:
+-- actionban
+
+==
+Overriding null value means keep it
+==
 Configure a filter for tcp-dump to log tcp syn packet
 
 tcp-dump (...) tcp[tcpflags] & tcp-syn != 0

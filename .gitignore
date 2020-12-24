@@ -3,3 +3,4 @@ demo
 /*.data
 confsamples
 nbproject/private
+/dist/
